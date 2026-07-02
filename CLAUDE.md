@@ -25,9 +25,9 @@ in sync:
 
 ```yaml
 ---
-version: 1.10.1        # top-level
+version: 1.11.0        # top-level
 metadata:
-  version: 1.10.1      # duplicate — keep identical to top-level
+  version: 1.11.0      # duplicate — keep identical to top-level
 ---
 ```
 
@@ -43,7 +43,10 @@ FORK_REPORT.md                  # sanitization record for the open-source fork (
 references/
 ├── eval-scenarios.md           # E01-E08 manual eval scenarios — required before any version bump
 ├── governance.md               # owner, optional integrations, update triggers, known limitations
-└── init.md                     # cold-start onboarding flow for first use in a new project
+├── init.md                     # cold-start onboarding flow for first use in a new project
+├── output-templates.md         # conditionally-triggered output format templates
+├── output-spec.md              # .loop-state-*.md schema, filename rule, lifecycle, boundaries
+└── quality-standards.md        # three-tier delivery quality bar + pre-ship checklist
 .github/ISSUE_TEMPLATE/         # bug report / feature request templates
 ```
 

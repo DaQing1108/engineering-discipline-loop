@@ -1,5 +1,22 @@
 # Changelog — engineering-discipline-loop
 
+## v1.11.0
+第二輪瘦身重構（不動核心邏輯）：搬出 9 項條件觸發/純格式內容，全部與 Step 1–9、L-STEP 1–6
+的決策邏輯正交（不影響「該不該繼續執行」的判斷，只影響「輸出什麼訊息」）：
+1. 環境不符警告、斷點續跑清單、內建風險評估 fallback 表、L4 阻斷輸出、⛔ LOOP BLOCKED、
+   🛑 SHIP FAILED/Rollback → 新增 `references/output-templates.md`
+2. 輸出規格整節（每步輸出格式、State 檔 schema、生命週期、改動邊界）→ 新增
+   `references/output-spec.md`；0-D-iii 的 state 初始化 YAML 範例改為指向同一份文件，
+   消除重複內容
+3. 品質標準（三級判斷基準）+ 品質 Checklist → 新增 `references/quality-standards.md`
+
+明確排除：Step 1–9 每步結尾的 `.loop-state.md 更新` YAML 範例（九步合計約 50–70 行）不搬出——
+這塊內容每一步都會被讀寫，搬到 references/ 只會把行數藏起來，不會降低總 token 成本，甚至可能
+因為每步都要額外查找而更高。行數指標和 token 成本在此案例上會分歧，優先看 token 成本。
+
+實測效果：`SKILL.md` 803 → 611 行（-24%）。逐條對照 E01–E08 全數通過，Step 1–9 / L-STEP 1–6
+決策文字逐字未動。
+
 ## v1.10.1
 補上 v1.10.0 瘦身重構後發現的 Eval 盲區：E01–E07 只測 Step 0–9 執行路徑，沒有一條測試新增的
 `references/*.md` pointer 讀取行為本身。新增 E08（reference pointer 讀取可靠性），

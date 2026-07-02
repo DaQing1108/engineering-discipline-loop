@@ -46,16 +46,16 @@ This is pure Markdown that Claude Code reads and follows as instructions.
 Copy the folder into your personal skills directory so it's available in every project:
 
 ```bash
-git clone https://github.com/DaQing1108/engineering-discipline-loop-oss.git
+git clone https://github.com/DaQing1108/engineering-discipline-loop.git
 mkdir -p ~/.claude/skills
-cp -r engineering-discipline-loop-oss ~/.claude/skills/engineering-discipline-loop
+cp -r engineering-discipline-loop ~/.claude/skills/engineering-discipline-loop
 ```
 
 Or drop it into a single project instead, so it's scoped to that repo:
 
 ```bash
 mkdir -p .claude/skills
-cp -r engineering-discipline-loop-oss .claude/skills/engineering-discipline-loop
+cp -r engineering-discipline-loop .claude/skills/engineering-discipline-loop
 ```
 
 Claude Code picks up skills under `~/.claude/skills/` (global) or `.claude/skills/`
@@ -107,7 +107,16 @@ exact step it stopped at.
 - [`references/init.md`](references/init.md) — the cold-start onboarding flow to run
   once before first use in a new project (`references/init.md` is what `SKILL.md`
   points to when you say "first time using discipline-loop in this project")
-- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.10.1
+- [`references/output-templates.md`](references/output-templates.md) — output format
+  templates for conditionally-triggered messages (environment mismatch, resume
+  checkpoint listing, risk-assessment fallback, L4 block, loop termination, ship
+  failure) — kept out of `SKILL.md` since they're read only when that specific
+  condition fires, not on every task
+- [`references/output-spec.md`](references/output-spec.md) — the full
+  `.loop-state-*.md` schema, filename convention, lifecycle, and change boundaries
+- [`references/quality-standards.md`](references/quality-standards.md) — the
+  three-tier delivery quality bar and the pre-ship self-review checklist
+- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.11.0
 
 ## Using with Claude Code
 
