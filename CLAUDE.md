@@ -25,9 +25,9 @@ in sync:
 
 ```yaml
 ---
-version: 1.11.0        # top-level
+version: 1.11.1        # top-level
 metadata:
-  version: 1.11.0      # duplicate — keep identical to top-level
+  version: 1.11.1      # duplicate — keep identical to top-level
 ---
 ```
 
