@@ -32,7 +32,7 @@ existing STOP/approval point or the risk-level routing logic.
 
 Does this change any of Step 1–9 or L-STEP 1–6? If yes, note that per
 [CONTRIBUTING.md](../../CONTRIBUTING.md) this requires a full Eval walkthrough
-(E01–E08) with per-scenario results before merge, plus a version bump in `SKILL.md`
+(E01–E11) with per-scenario results before merge, plus a version bump in `SKILL.md`
 frontmatter (`version:` and `metadata.version`, kept in sync) and a `CHANGELOG.md`
 entry.
 

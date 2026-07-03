@@ -14,7 +14,7 @@ lite) was chosen, etc.
 
 ## Related Eval scenario (if any)
 
-Does this reproduce one of E01–E08 in `references/eval-scenarios.md`? If so, which
+Does this reproduce one of E01–E11 in `references/eval-scenarios.md`? If so, which
 one, and how does the actual behavior differ from the documented `pass_condition`?
 
 - Scenario ID:

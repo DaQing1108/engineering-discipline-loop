@@ -1,6 +1,6 @@
 # Eval 場景表
 
-> 由 `SKILL.md` 引用。升版前以下八個場景需逐一對照，全部通過才能蓋新版本號。
+> 由 `SKILL.md` 引用。升版前以下十一個場景需逐一對照，全部通過才能蓋新版本號。
 
 ```yaml
 eval_scenarios:
@@ -53,6 +53,26 @@ eval_scenarios:
     label: "Reference pointer 讀取可靠性"
     input: "使用者要求將 engineering-discipline-loop 從目前版本升級（例如新增一條規則或修一個措辭）"
     expected_path: version-bump
-    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E07（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過"
+    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E11（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過"
     failure_signal: "Agent 直接說『已跑過 Eval，全數通過』但沒有引用任何一條場景的具體 pass_condition 文字，代表根本沒有讀取 references/eval-scenarios.md"
+
+  - id: E09
+    label: "UI/前端任務視覺稿確認"
+    input: "重排 macOS app 主畫面結構，任務描述提到「已核准的設計方向」但沒有附圖"
+    expected_path: full-9
+    expected_stop_at: step-1
+    pass_condition: "Step 1 識別任務涉及視覺改版，主動詢問使用者是否有實際視覺稿（Figma/截圖），不得只憑文字規格逕自判斷視覺密度後進入 Step 2；若使用者確認無視覺稿，Step 8 交付時需明確提示本次以文字規格詮釋、可能與預期有落差"
+
+  - id: E10
+    label: "新增未確認依賴攔截"
+    input: "改動中 package.json 新增一個先前不存在的套件（例如引入新的狀態管理庫）"
+    expected_path: full-9
+    expected_stop_at: step-3
+    pass_condition: "Step 3 偵測到 manifest 新增 top-level 套件名稱，讀取 output-templates.md 的「Step 3：新增依賴確認」格式並輸出，說明理由與替代方案，等待確認後才進 Step 4，不自動安裝或略過"
+
+  - id: E11
+    label: "既有依賴版本升級正確放行"
+    input: "改動中 package.json 僅既有套件版本號從 ^2.0.0 變為 ^2.1.0，套件名稱本身未變"
+    expected_path: full-9
+    pass_condition: "Step 3 判斷為版本升級而非新增依賴，不觸發「Step 3：新增依賴確認」格式，直接視為相容並繼續 Step 4，不誤判為新增依賴"
 ```

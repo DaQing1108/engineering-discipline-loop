@@ -11,7 +11,7 @@
 
 **✅ 可直接交付（高品質）**
 - 所有 Step 的 ✅ confirmation 均已輸出
-- `.loop-state.md` 在 /ship 成功後已清除
+- 本次任務的 `.loop-state-{task-id}.md` 在 /ship 成功後已清除
 - 測試全部 green，hooks 全部通過
 - CLAUDE.md 狀態已確認或更新
 
@@ -32,8 +32,9 @@
 - [ ] 完整九步或輕量六步的每個 Step 均有 ✅ 確認輸出
 - [ ] Step 7（完整路徑）或 L-STEP 3（輕量路徑）的 Checklist 全部 ✅
 - [ ] 測試全部 green（Step 6 或 L-STEP 4）
-- [ ] /ship 成功後 `.loop-state.md` 已清除，或 /ship 失敗後已 `git stash`
+- [ ] /ship 成功後本次任務的 `.loop-state-{task-id}.md` 已清除，或 /ship 失敗後已 `git stash`
 - [ ] 沒有任何 Step 被靜默跳過或壓縮
 - [ ] CLAUDE.md 的 owner 為使用者，agent 未直接寫入（僅提案）
+- [ ] 若為 UI-facing 改動，已提供視覺證據（截圖/影片），或已說明環境限制與替代驗證方式
 
 > 任一項未完成 → 補做後再輸出。

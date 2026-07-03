@@ -25,9 +25,9 @@ in sync:
 
 ```yaml
 ---
-version: 1.11.1        # top-level
+version: 1.13.0        # top-level
 metadata:
-  version: 1.11.1      # duplicate — keep identical to top-level
+  version: 1.13.0      # duplicate — keep identical to top-level
 ---
 ```
 
@@ -41,7 +41,7 @@ SKILL.md                        # the skill itself: frontmatter + full 9-step / 
 CHANGELOG.md                    # version history, v1.0.0 -> current
 FORK_REPORT.md                  # sanitization record for the open-source fork (informational, do not edit)
 references/
-├── eval-scenarios.md           # E01-E08 manual eval scenarios — required before any version bump
+├── eval-scenarios.md           # E01-E11 manual eval scenarios — required before any version bump
 ├── governance.md               # owner, optional integrations, update triggers, known limitations
 ├── init.md                     # cold-start onboarding flow for first use in a new project
 ├── output-templates.md         # conditionally-triggered output format templates
@@ -69,7 +69,7 @@ CHANGELOG.md                    — append-only version history
 ## Changing Step 1-9 or L-STEP 1-6
 
 Any change to the core workflow logic (full-path Step 1-9 or lite-path L-STEP 1-6)
-requires walking the full Eval scenario table (E01-E08) in
+requires walking the full Eval scenario table (E01-E11) in
 `references/eval-scenarios.md` before the version bump, with results reported inline
 per scenario — not summarized as "Eval passed." See [CONTRIBUTING.md](CONTRIBUTING.md)
 for the exact process. This applies before merging, not just before tagging a release.

@@ -98,8 +98,8 @@ exact step it stopped at.
 
 ## Reference Material
 
-- [`references/eval-scenarios.md`](references/eval-scenarios.md) — the eight manual
-  eval scenarios (E01–E08) used to validate the skill's actual behavior before every
+- [`references/eval-scenarios.md`](references/eval-scenarios.md) — the eleven manual
+  eval scenarios (E01–E11) used to validate the skill's actual behavior before every
   version bump (there is no automated test runner for this — see
   [CONTRIBUTING.md](CONTRIBUTING.md))
 - [`references/governance.md`](references/governance.md) — ownership, optional
@@ -116,7 +116,7 @@ exact step it stopped at.
   `.loop-state-*.md` schema, filename convention, lifecycle, and change boundaries
 - [`references/quality-standards.md`](references/quality-standards.md) — the
   three-tier delivery quality bar and the pre-ship self-review checklist
-- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.11.1
+- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.13.0
 
 ## Using with Claude Code
 

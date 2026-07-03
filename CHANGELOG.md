@@ -1,5 +1,34 @@
 # Changelog — engineering-discipline-loop
 
+## v1.13.0
+兩項補強（依賴鎖定與觸發計數）：
+1. Step 3 新增「依賴變更檢查」：比對 manifest（package.json/pyproject.toml/Cargo.toml/go.mod
+   等）diff，偵測到新增 top-level 套件時，MUST 讀取 output-templates.md 的「Step 3：新增依賴
+   確認」格式並輸出，等待確認才能繼續 Step 4；既有套件僅版本號變化視為升級，不觸發
+2. Step 1 新增觸發條件計數：命中既有三類額外必做條件（跨系統整合/UI-前端/驗收型任務）時，
+   追加寫入 `references/trigger-counts.log`（本機執行時產生，已加入 `.gitignore`，不隨 repo
+   分發），可用於長期累積 Step 1 各類觸發條件的實際發生頻率
+
+新增 E10（新增依賴攔截）、E11（既有依賴升版正確放行），Eval 場景表由九個增為十一個；
+同步修正 E08 pass_condition 內過時的「E01–E07」為「E01–E11」。
+逐條對照 E01–E11 全數通過，Step 0、2、4–9 及 L-STEP 決策邏輯本體未動，僅擴充 Step 1、3。
+
+## v1.12.0
+五項補強，來自一輪實戰使用（五段式 UI 改版任務，五次完整/輕量紀律迴圈）的觀察：
+1. Step 1 新增「UI/前端任務額外必做」：任務涉及視覺改版但無附圖時，MUST 先問使用者有無實際
+   視覺稿，不得只憑文字規格判斷視覺密度（比照既有跨系統整合評估的強制詢問模式）
+2. 修正 Step 9 SHIP 清理指示與 0-D-i task-id 命名慣例不一致：「刪除 `.loop-state.md`」改為
+   「刪除本次任務的 `.loop-state-{task-id}.md`」；同步修正 `quality-standards.md` 兩處同類敘述
+3. 新增第三種任務類型「驗收既有、非本次撰寫的程式碼」，Step 1 補「驗收型任務」Explore 技巧
+   （id/reference 交叉比對、結構完整性靜態檢查、優先信任既有邏輯不重寫）
+4. Step 7-B 明文建議修復後重審優先用 `SendMessage` resume 同一個 review agent，而非重新
+   spawn——保留原始審查脈絡，重驗更精準且省 token
+5. Step 8 新增「UI-facing 改動需視覺證據」：不得只憑測試通過宣稱完成，環境限制無法截圖時
+   須明確告知並說明替代驗證方式；`quality-standards.md` Checklist 同步新增對應項目
+
+新增 E09（UI/前端任務視覺稿確認），Eval 場景表由八個增為九個。
+逐條對照 E01–E09 全數通過，Step 2–7、9 及 L-STEP 決策邏輯本體未動，僅擴充 Step 1/7/8/9。
+
 ## v1.11.1
 壓到 600 行以內（低風險收尾）：
 1. 修正 0-D-i 遺留的重複內容——task-id 格式範例與 `references/output-spec.md` 的「檔名格式」
