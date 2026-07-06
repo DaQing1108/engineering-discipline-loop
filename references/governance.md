@@ -6,22 +6,23 @@
 
 **適用範圍：** 你的組織中所有產品線的 Claude Code coding 任務執行。
 
+
 **可信度等級：** T2（正式 SOP，允許依情境調整）
 
 | 等級 | 意義 | 本 Skill 使用方式 |
 |------|------|-----------------|
 | T2 | 操作與背景依據（正式文件、SOP） | 作為 coding 任務的標準執行程序，允許依任務特性調整路徑判斷 |
 
-**最後確認日期：** 2026-07-02
+**最後確認日期：** 2026-07-06（第一輪健檢觸發 v1.15.0）
 
-**可選整合關係（非必需依賴，本 Skill 內建 fallback，未安裝仍可完整運作）：**
+**依賴關係：**
 - 可選整合 `harness-rules`（Pre-flight Check、風險等級定義、L3/L4 阻擋邏輯）— 未安裝時使用內建簡化風險評估（見 SKILL.md 0-C）
 - 可選整合 `task-router`（L0–L4 風險等級分類定義）— 未安裝時不影響本 Skill 獨立運作
-- 若你已安裝 `harness-rules` 並升版，建議確認風險等級定義是否有異動
+- 若 `harness-rules` 升版，需確認風險等級定義是否有異動
 
 **更新觸發條件：**
-- [ ] `harness-rules`（若已安裝）升版且新增或修改風險等級定義
-- [ ] `task-router`（若已安裝）升版且修改 L0–L4 分類標準
+- [ ] `harness-rules` 升版且新增或修改風險等級定義
+- [ ] `task-router` 升版且修改 L0–L4 分類標準
 - [ ] 你的工程團隊採用新的測試框架或 git workflow，導致 hooks 設計需要調整
 - [ ] 實際使用中發現新的失敗模式，需補入錯誤處理
 - [ ] 距上次確認已超過 **3 個月**
@@ -32,6 +33,18 @@
 
 **被取代文件：** 無（v1.0.0 為初版）
 
+**模型升級健檢（工作流 C 觸發二，v1.14.0 新增）：**
+
+| 觸發條件 | 健檢門檻 | 健檢範圍 |
+|---------|---------|---------|
+| 底層 Claude 模型版本升級 | `hook-trigger-log.log` 累積滿 20 筆（dependency_block／line_warning／needs_confirmation 三類分開計數，合計滿 20），或距本次上線滿六週，兩者先到者觸發 | ①三類事件個別發生頻率與比例，評估 A2（拆除/降級對應 STOP 點）是否具備決策條件 ②`step7-verification-log.log` 累積筆數是否足以開始設計 B2 準確率量測方法 ③是否已發生模型版本升級，若是一併檢視既有 STOP 點與 checklist 是否可精簡 |
+
+健檢審查 MUST 分開檢視三類事件的個別筆數，不得只看合計總數下判斷；某一類筆數不足時，該類對應決策應繼續等待。工作流 C「觸發一：健檢執行」本身、A2、B2 分析與信任分數，均待第一輪健檢後才進入下一輪 spec 討論範圍。
+
+**第一輪健檢紀錄（2026-07-06，v1.15.0 觸發修法）：**
+
+v1.14.0 於 2026-07-03 上線，健檢門檻（20 筆或六週）於 **3 天內**就被 `hook-trigger-log.log` 累積的 38 筆事件（`line_warning` 35、`dependency_block` 3、`needs_confirmation` 0）大幅超過，但因機制設計是「純記錄不分析」，門檻超標本身直到人工檢查才被發現——證實了「兩者先到者觸發」在缺乏主動提醒的情況下形同虛設。逐筆比對後另外發現：`line_warning` 的 35 筆中，絕大多數是 `Write` 建立全新檔案被誤判為「單次改動超過 50 行」；`step7-verification-log.log` 僅 1 個 task_id 被記錄，但同期至少 6–7 個獨立任務存在。v1.15.0 已針對性修復（見 CHANGELOG.md）。
+
 **已知限制（結構化治理表）：**
 
 | 限制 | 影響等級 | 解法方向 | 目標版本 |
@@ -41,3 +54,8 @@
 | Step 7 Checklist 取代不了真人 review | 中（品質上限受 checklist 設計本身限制） | Step 7 補入真人 review 觸發條件（改動 > 100 行、涉及 auth 邏輯等） | v1.3 |
 | `CLAUDE.md` 提案若使用者略過確認，Skill 無法阻擋 | 低（人工確認為必要設計） | 記錄為已知限制，無自動解法 | — |
 | Chat / Cowork 環境無法完整執行 | 低（已在 v1.2.0 補入降級模式） | 已在 Step 0.0 補入環境偵測與「僅規劃」降級 | ✅ v1.2 |
+| 依賴偵測 hook 為 fail-open 設計，且對 pyproject.toml/Cargo.toml/go.mod 用 heuristic 判斷 | 中（fail-open 在腳本自身異常時會靜默放行；text manifest heuristic 對非依賴的 key=value 行也可能誤觸發 needs_confirmation） | fail-open 為刻意取捨（全域 hook，寧可偶爾漏判也不能讓所有專案的 Edit/Write 因腳本 bug 卡死）；heuristic 誤觸發已在健檢審查時一併檢視 needs_confirmation 類別比例 | v1.14 |
+| `line_warning` 警告傳達機制自 v1.14.0 上線以來未真正生效（純 stderr + exit 0，Claude Code 官方文件確認此組合訊息不會傳入 Claude 上下文，只有 exit 2 才會，但會阻斷工具呼叫） | 高（設計目的完全落空，agent 從未真正收到過警告，僅 log 側寫入正常） | 改用官方文件確認的 exit 0 + stdout JSON `hookSpecificOutput.additionalContext` 機制，已於 v1.15.0 修復並套用到所有新增 hook | ✅ v1.15 |
+| `~/.claude` 與 skill 設定目錄本身無版本控制（僅有落後版本的 GitHub 鏡像 `engineering-discipline-loop-oss`） | 中（升版若改壞沒有即時回復點，本次靠手動建立時間戳備份補救） | 建議將 `~/.claude/hooks/` 與 skill 目錄納入版控，非本輪範圍，記錄待後續處理 | — |
+| `diff-size-check.js` 從 v1.14.0 的 PostToolUse+async 改為 v1.15.0 的 PreToolUse+同步，每次 Write/Edit/MultiEdit 新增約 30-80ms 的 hook 進程啟動延遲（三支 hook 各自獨立進程，累計可能 ~150-250ms） | 低（是 additionalContext 機制的必要代價：警告要在工具執行前送達才有意義，PreToolUse 無法 async） | 已知取捨，不視為缺陷；若未來延遲明顯影響體驗，可評估把三支 hook 合併成一支進程以省去重複啟動成本 | — |
+| 官方文件記載同一 matcher 下多支 hook 平行執行、各自 additionalContext 都會送達，但實測一度只看到其中一支訊息（後續發現主因是測試方法混淆了 scratch 目錄與 session 實際 cwd，無法完全排除是否仍有平行執行的邊界案例） | 低（v1.15.0 已改為每支 hook 獨立 matcher 區塊，此寫法官方文件確認安全，重測後正確） | 已採用較保守寫法；若日後又混用同一 matcher 掛多支 hook 且行為異常，優先檢查此處 | — |

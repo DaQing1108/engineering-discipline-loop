@@ -1,7 +1,7 @@
 # 冷啟動流程（Discipline-Loop Init）
 
 > 由 `SKILL.md` 引用。
-> ⚠️ 命名注意：若你的 Claude Code 設定中另外安裝了一個同樣命名為 `init` 的 skill（例如某些通用初始化工具會用「Initialize a new CLAUDE.md file with codebase documentation」這類描述），請注意兩者不是同一個東西。本流程專屬於 engineering-discipline-loop 的冷啟動掃描，觸發詞請用「discipline-loop 初始化」或直接描述「第一次在這個專案用 discipline-loop」，避免與其他同名 skill 混淆。
+> ⚠️ 命名注意：此流程與環境中另一個獨立的 plugin skill `init`（Initialize a new CLAUDE.md file with codebase documentation）不是同一個東西。本流程專屬於 engineering-discipline-loop 的冷啟動掃描，觸發詞請用「discipline-loop 初始化」或直接描述「第一次在這個專案用 discipline-loop」，避免與 plugin `init` 混淆。
 
 **使用時機**：第一次在新專案使用本 Skill 之前執行一次。
 

@@ -116,6 +116,24 @@ Step [N] 失敗 3 次，已停止執行。
 等待指示，不自動繼續。
 ```
 
+## Log 寫入格式（v1.14.0 新增，純追加，不分析）
+
+`references/step7-verification-log.log`（Step 7.5 每條 AC 判定完成後追加）：
+```
+2026-07-03 14:20 | 20260703-6e4a | AC-9 | PASS
+2026-07-03 14:20 | 20260703-6e4a | AC-10 | PASS(需用戶驗證)
+```
+
+`references/hook-trigger-log.log`（依賴偵測 hook block／needs_confirmation、行數警示 hook 觸發時追加）：
+```
+2026-07-03 14:05 | dependency_block | package.json：新增套件 axios
+2026-07-03 14:07 | needs_confirmation | pyproject.toml：偵測到可能的依賴變更，無法可靠解析
+2026-07-03 14:10 | line_warning | SKILL.md：本次改動 62 行
+```
+
+兩份 log 皆比照 `trigger-counts.log` 慣例：本機專用、非 git 管理、無需額外 `.gitignore` 處理，
+寫入邏輯不得包含任何分析、統計、評分。
+
 ## Rollback：🛑 SHIP FAILED（`/ship` 失敗時輸出）
 
 執行：

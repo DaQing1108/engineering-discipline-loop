@@ -26,6 +26,10 @@ risk_level: "[L0 / L1 / L2 / L3]"
 path: "[full-9-step / lite-6-step]"
 preflight_passed: true
 current_step: [目前執行到的 step 編號]
+scope_exception:
+  declared: false  # v1.15.0 新增：事故處理需暫時擴大原定範圍時設為 true
+  reason: "[為何需要擴大範圍，例：正式服務 crash loop 需跨專案修復]"
+  expanded_scope: "[暫時擴大到的範圍，例：pgm-weekly-report/backend/**]"
 completed_steps:
   - step: [N]
     summary: "[一到兩句，記錄這個 step 做了什麼和關鍵發現]"

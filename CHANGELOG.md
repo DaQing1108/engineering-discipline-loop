@@ -1,20 +1,103 @@
 # Changelog — engineering-discipline-loop
 
+## v1.15.0
+第一輪健檢（2026-07-06，v1.14.0 上線後 3 天，20 筆門檻已被 38 筆事件大幅超過）觸發的修法：
+1. `discipline-loop-diff-size-check.js` 修復兩個問題：(a) `Write` 建立全新檔案不再誤判為
+   「單次改動超過 50 行」，改用寫入前 `fs.existsSync` 判斷是否為新檔案；覆寫既有檔案時改算
+   「新增行數」而非總行數；(b) 警告傳達機制從 PostToolUse + stderr + exit 0（Claude Code 官方
+   文件確認此組合訊息不會傳入 Claude 上下文）改為 PreToolUse + exit 0 + stdout JSON
+   `hookSpecificOutput.additionalContext`（唯一官方確認可靠、不阻斷的傳達方式）；同時修正
+   PostToolUse 時序問題（寫入已完成才檢查 existsSync 恆為 true，無法判斷寫入前狀態）
+2. 新增 `discipline-loop-ship-gate-check.js`（PreToolUse on Bash，比對 `git commit`）：
+   `.loop-state` 顯示已進入 Step 7.5 但 `step7-verification-log.log` 無對應 task_id 記錄時，
+   透過 additionalContext 提醒，不阻擋 commit
+3. 新增 `discipline-loop-entry-check.js`（PreToolUse on Write/Edit/MultiEdit）：工作目錄無任何
+   `.loop-state-*.md` 時提醒，不阻擋；同 cwd 10 分鐘內節流，避免同一輕量任務被連續提醒洗版
+4. `references/eval-scenarios.md` 新增 E19–E22（needs_confirmation regression、新檔案不誤判、
+   ship-gate 警告、entry-check 警告與節流），更新 E15 反映 additionalContext 機制，Eval 場景表
+   由十八個增為二十二個
+5. `SKILL.md` 新增四條文字規則：Step 7 同等風險端點審查強度一致性、`.loop-state` schema 新增
+   `scope_exception` 欄位與事故處理正式宣告流程、Step 6／L-STEP 4 無 CLI/API 環境的人工驗證
+   宣告分支、及時止損（同一技術性問題卡 2–3 次須主動換路徑或問使用者）
+6. `references/governance.md` 記錄第一輪健檢結果與兩項新增已知限制（line_warning 傳達機制失效
+   已修復；hooks/skill 目錄無版控，記錄待後續處理）
+
+逐條對照 E01–E22 全數通過。Step 0、1、2、5、8、9 主體決策邏輯未動，擴充 Step 3（文字提及新
+hook）、Step 4（行數判斷 hook 位置與機制）、Step 6（無 CLI/API 驗證分支）、Step 7（審查強度一致
+性）、錯誤處理（及時止損）。
+
+**獨立 review 第一輪抓到 1 個 CRITICAL + 4 個 HIGH，修復後第二輪重審：**
+- CRITICAL：`Write`/`Edit`/`MultiEdit` 的「新增行數」原用 `Set` 判斷「這行是否曾出現過」，會
+  嚴重低估大範圍重寫（舊檔案裡任何曾出現過的行，即使現在是新區塊的一部分也不計入）。改用
+  multiset（頻率表）差異計算，三種工具改動統一用同一套邏輯判斷淨新增行數
+- HIGH：`ship-gate-check.js` 的 `task_id:`／`step: 7.5` regex 未錨定，可能被自由文字欄位誤判；
+  改為錨定行首（multiline flag），比對實際 YAML key 而非任意子字串
+- HIGH：`entry-check.js`／`ship-gate-check.js` 補上 `cwd`/檔案存在性檢查，與既有
+  `dependency-check.js` 的風格一致
+- HIGH：settings.json 原本三支 hook 掛在同一個 `Write|Edit|MultiEdit` matcher 底下，實測發現
+  訊息傳達不穩定（詳見下方「已知不確定性」）；改為每支 hook 各自獨立的 matcher 區塊，官方文件
+  確認此為安全寫法，重測後行為正確
+- MEDIUM（資安審查）：`ship-gate-check.js`／`diff-size-check.js` 新增 1MB 讀取上限，避免讀取
+  異常肥大的 log/檔案拖慢每次 commit 或編輯
+
+明確排除本次範圍：「分類器代打 vs loop 自身授權檢查」的架構層級重新設計（記錄為已知限制，
+待下一輪 spec）、輕量六步路徑是否補 Step 7.5 的設計討論、健檢門檻數字本身的調整、
+`~/.claude/hooks/` 與 skill 目錄版控化。
+
+**已知不確定性（實測記錄）：** 官方文件記載同一 matcher 下多支 hook 會平行執行，且每支的
+`additionalContext` 都會被 Claude 收到；但實測（同一 matcher 掛 3 支 hook）第一次只看到其中一支
+的訊息。後續改為每支 hook 各自獨立 matcher 區塊後重測，訊息正確顯示——但同時發現原本「看起來沒
+顯示」的那次測試，根因其實是測試方法本身有誤（在 scratch 目錄編輯，但 hook 判斷的是 session 實際
+cwd，該處本來就有合法的 `.loop-state`，該支 hook 正確保持沉默）。兩個變因同時存在，無法百分之百
+排除「同一 matcher 多支 hook」是否仍有官方文件與實際行為不一致之處；保留獨立 matcher 區塊作為
+較保守的寫法，未來若發現異常請優先檢查是否又混用了同一 matcher 掛多支 hook。
+
+決策記錄：Notion 工作總結倉庫（2026-07-06，engineering-discipline-loop v1.14 踩坑與優化討論；
+本次 session 內 spec-writer 產出的 v1.15 規格與 harness-rules Pre-flight 核查）
+
+## v1.14.0
+工具層依賴／行數 Sensor + Step 7.5 Rubric 化驗收 + 量測基礎設施（Spec v2，取代原 v1 規格）：
+1. Step 3 依賴變更檢查改由 PreToolUse hook（`~/.claude/hooks/discipline-loop-dependency-check.js`）
+   偵測，取代 agent 自行比對 manifest diff：package.json 用 JSON.parse 比對 top-level 套件差異，
+   pyproject.toml/Cargo.toml/go.mod 無輕量 parser，一律回傳 needs_confirmation；hook 判定結果由
+   agent 依既有 Step 3 STOP 流程處理，hook 本身不與使用者對話（沿用既有技術限制）
+2. Step 4 行數上限改由 PostToolUse hook（`discipline-loop-diff-size-check.js`）輔助偵測，
+   超過 50 行時夾帶可行動警示文字（PostToolUse 無法阻擋，僅警示）
+3. 兩支 hook 觸發事件（dependency_block／line_warning／needs_confirmation）追加寫入
+   `references/hook-trigger-log.log`；放行不算觸發，不寫入
+4. Step 7.5 每次 rubric 判定結果追加寫入 `references/step7-verification-log.log`（任務ID／AC編號／
+   判定結果），純記錄不分析，為未來 B2（累積 review 準確率）評估預留原始資料
+5. `references/governance.md` 新增「模型升級健檢」條目：`hook-trigger-log.log` 三類分開計數
+   合計滿 20 筆或距上線滿六週，兩者先到者觸發第一輪健檢審查
+
+新增 E12–E18（依賴偵測 block/放行/needs_confirmation、行數警示、Step 7.5 log 寫入、governance
+條目存在性、三類事件分開計數），Eval 場景表由十一個增為十八個。
+逐條對照 E01–E18 全數通過，Step 0、1、2、5、6、8、9 及 L-STEP 決策邏輯本體未動，僅擴充
+Step 3、4、7.5。`git diff --stat SKILL.md`：14 insertions(+)，9 deletions(-)，符合 45 行門檻。
+
+明確排除本次範圍：A2（依 hook 數據拆除/降級 STOP 點）、B2 分析與信任分數、工作流 C 觸發一
+（健檢執行本身）——均待第一輪健檢（20 筆或六週）觸發後另案評估。
+
+決策記錄：Notion 工作總結倉庫（2026-07-03，engineering-discipline-loop v1.14.0 Sensor+Rubric+
+量測基礎設施 Spec v2 討論）
+
 ## v1.13.0
-兩項補強（依賴鎖定與觸發計數）：
+兩項 RICE 評估排序最高的補強（依賴鎖定 P2 分數 48、觸發計數用於未來 RICE 重估）：
 1. Step 3 新增「依賴變更檢查」：比對 manifest（package.json/pyproject.toml/Cargo.toml/go.mod
    等）diff，偵測到新增 top-level 套件時，MUST 讀取 output-templates.md 的「Step 3：新增依賴
    確認」格式並輸出，等待確認才能繼續 Step 4；既有套件僅版本號變化視為升級，不觸發
 2. Step 1 新增觸發條件計數：命中既有三類額外必做條件（跨系統整合/UI-前端/驗收型任務）時，
-   追加寫入 `references/trigger-counts.log`（本機執行時產生，已加入 `.gitignore`，不隨 repo
-   分發），可用於長期累積 Step 1 各類觸發條件的實際發生頻率
+   追加寫入 references/trigger-counts.log（skill 目錄本身非 git 管理，不需額外 .gitignore
+   處理），供未來累積數據重新評估 RICE Reach，不要求使用者操作
 
 新增 E10（新增依賴攔截）、E11（既有依賴升版正確放行），Eval 場景表由九個增為十一個；
 同步修正 E08 pass_condition 內過時的「E01–E07」為「E01–E11」。
 逐條對照 E01–E11 全數通過，Step 0、2、4–9 及 L-STEP 決策邏輯本體未動，僅擴充 Step 1、3。
 
+決策記錄：Notion 工作總結倉庫（2026-07-03，engineering-discipline-loop 依賴鎖定+觸發計數 Spec 討論）
+
 ## v1.12.0
-五項補強，來自一輪實戰使用（五段式 UI 改版任務，五次完整/輕量紀律迴圈）的觀察：
+來自 Whisper macOS UI 改版 session（5 輪完整/輕量迴圈）的實戰觀察，五項補強：
 1. Step 1 新增「UI/前端任務額外必做」：任務涉及視覺改版但無附圖時，MUST 先問使用者有無實際
    視覺稿，不得只憑文字規格判斷視覺密度（比照既有跨系統整合評估的強制詢問模式）
 2. 修正 Step 9 SHIP 清理指示與 0-D-i task-id 命名慣例不一致：「刪除 `.loop-state.md`」改為
@@ -29,6 +112,11 @@
 新增 E09（UI/前端任務視覺稿確認），Eval 場景表由八個增為九個。
 逐條對照 E01–E09 全數通過，Step 2–7、9 及 L-STEP 決策邏輯本體未動，僅擴充 Step 1/7/8/9。
 
+實測效果：主檔 599 → 636 行（五項新增內容的原始成本），收斂措辭後回落至 615 行（+16，約
+每項功能 3 行）。未把新增的三項 Step 1 檢查（跨系統整合、UI 視覺稿、驗收型任務）搬進
+references/——這些是會影響「能不能進 Step 2」的判斷內容，不是單純的輸出格式模板，比照
+v1.11.0 對 Step 1 跨系統區塊的既有處理方式，決策內容留在主檔內，只壓縮措辭不搬遷。
+
 ## v1.11.1
 壓到 600 行以內（低風險收尾）：
 1. 修正 0-D-i 遺留的重複內容——task-id 格式範例與 `references/output-spec.md` 的「檔名格式」
@@ -36,24 +124,27 @@
 2. 移除兩處結構上多餘的雙重分隔線（執行流程標題後、輕量六步路徑標題後，各與上一個
    分隔線緊鄰重複）
 
-實測效果：`SKILL.md` 611 → 599 行。Step 1–9 / L-STEP 1–6 決策邏輯逐字未動。
+實測效果：`SKILL.md` 611 → 599 行。核算過：178 個空白行沒有一個是意外重複、24 個分隔線
+大多各自服務不同結構邊界，這輪已經是低垂果實的極限，margin 只剩 1 行。若要再往下，
+唯一路徑是動 Step 1–9 的決策文字本身或先前排除的逐步 YAML 範例，兩者都已評估過不划算。
+Step 1–9 / L-STEP 1–6 決策邏輯逐字未動。
 
 ## v1.11.0
 第二輪瘦身重構（不動核心邏輯）：搬出 9 項條件觸發/純格式內容，全部與 Step 1–9、L-STEP 1–6
 的決策邏輯正交（不影響「該不該繼續執行」的判斷，只影響「輸出什麼訊息」）：
-1. 環境不符警告、斷點續跑清單、內建風險評估 fallback 表、L4 阻斷輸出、⛔ LOOP BLOCKED、
-   🛑 SHIP FAILED/Rollback → 新增 `references/output-templates.md`
-2. 輸出規格整節（每步輸出格式、State 檔 schema、生命週期、改動邊界）→ 新增
-   `references/output-spec.md`；0-D-iii 的 state 初始化 YAML 範例改為指向同一份文件，
-   消除重複內容
+1. 0-0 環境不符警告模板、0-A 斷點續跑清單、0-C 內建風險評估 fallback 表、0-C L4 阻斷輸出格式、
+   ⛔ LOOP BLOCKED、🛑 SHIP FAILED/Rollback → 新增 `references/output-templates.md`
+2. 輸出規格整節（每步輸出格式、State 檔 schema、生命週期、改動邊界）→ 新增 `references/output-spec.md`；
+   0-D-iii 的 state 初始化 YAML 範例改為指向同一份文件，消除與輸出規格重複的內容
 3. 品質標準（三級判斷基準）+ 品質 Checklist → 新增 `references/quality-standards.md`
 
 明確排除：Step 1–9 每步結尾的 `.loop-state.md 更新` YAML 範例（九步合計約 50–70 行）不搬出——
 這塊內容每一步都會被讀寫，搬到 references/ 只會把行數藏起來，不會降低總 token 成本，甚至可能
 因為每步都要額外查找而更高。行數指標和 token 成本在此案例上會分歧，優先看 token 成本。
 
-實測效果：`SKILL.md` 803 → 611 行（-24%）。逐條對照 E01–E08 全數通過，Step 1–9 / L-STEP 1–6
-決策文字逐字未動。
+實測效果：主檔 803 行 → 611 行（-24%）。從 v1.10.0 前的起點（988 行）累計 **-38%**。
+逐條對照 E01–E08 全數通過，Step 1–9 / L-STEP 1–6 決策文字逐字未動。
+評估與決策記錄：[Notion](https://app.notion.com/p/391280a95f7681029f96df94be034460)
 
 ## v1.10.1
 補上 v1.10.0 瘦身重構後發現的 Eval 盲區：E01–E07 只測 Step 0–9 執行路徑，沒有一條測試新增的
@@ -65,10 +156,11 @@
 瘦身重構（不動核心邏輯）：
 1. Eval 場景表 E01–E07 搬至 `references/eval-scenarios.md`
 2. Knowledge Governance 搬至 `references/governance.md`，主檔留 owner/依賴 2 行 stub
-3. `/init` 冷啟動附錄搬至 `references/init.md`，並改名為「discipline-loop 初始化」以避免與同名 plugin skill `init` 混淆
+3. `/init` 冷啟動附錄搬至 `references/init.md`，並改名為「discipline-loop 初始化」以避免與環境中另一個同名 plugin skill `init` 混淆
 4. 完整版本歷程搬出 frontmatter，改為本檔案
 
 實測效果：主檔 988 行 → 792 行（-20%），38,169 bytes → ~28,000 bytes（-27%）。Step 1–9 完整九步與 L-STEP 1–6 輕量六步流程逐字未變動。
+評估與決策記錄：[Notion](https://app.notion.com/p/391280a95f7681029f96df94be034460)
 
 ## v1.9.0
 Deep Professional Judgment 整合：
