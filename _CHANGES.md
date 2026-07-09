@@ -1,5 +1,23 @@
 # 異動紀錄 — engineering-discipline-loop-oss
 
+## 2026-07-09 22:10
+### ➕ 新增（根因修復：加自動一致性檢查，避免同一類問題再發生）
+- `scripts/check-referenced-files.sh`（新寫，掃描所有 .md 檔裡反引號包住的
+  `*.js`/`*.md`/`*.sh` 檔名，確認 repo 裡真的存在對應檔案；已用「刪掉一支
+  hook 檔案再跑」驗證真的會擋下同類 bug）
+
+### ✏️ 編輯
+- `scripts/pre-push-sanitize-check.sh`（串接呼叫上面的新 script；第一版用
+  `dirname "$0"` 解析路徑，透過真正的 `.git/hooks/pre-push` symlink 呼叫路徑
+  測試才發現這樣會靜默失效——`$0` 透過 symlink 呼叫時不會解析成目標檔案位置，
+  改用 `git rev-parse --show-toplevel` 取得絕對路徑修正）
+- `CONTRIBUTING.md`（Pre-Push Sanitization Check 段落補充新 script 說明）
+- `CHANGELOG.md`（Unreleased 條目補上這次的根因修復內容）
+
+（另外私有端 `~/.claude/skills/engineering-discipline-loop/hooks/` 也同步從
+「手動複製的備份」改成對 `~/.claude/hooks/` 的 symlink，消除同一種模式的另一
+個潛在漏洞——這個改動在本機，不影響公開 repo。）
+
 ## 2026-07-09 21:45
 ### ➕ 新增（補齊 SKILL.md 已引用但公開 repo缺漏的 4 支 hook script）
 - `hooks/discipline-loop-dependency-check.js`
