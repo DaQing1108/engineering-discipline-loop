@@ -61,6 +61,15 @@ cp -r engineering-discipline-loop .claude/skills/engineering-discipline-loop
 Claude Code picks up skills under `~/.claude/skills/` (global) or `.claude/skills/`
 (project-scoped) automatically — no restart or registration step needed beyond the copy.
 
+### Hooks (optional)
+
+`SKILL.md` describes four `PreToolUse` hook scripts (entry check, dependency
+check, diff-size check, ship-gate check) that back a few of its rules with an
+automated tool-layer check instead of relying on the agent alone. They ship in
+[`hooks/`](hooks/) but aren't wired up by the copy above — see
+[`hooks/README.md`](hooks/README.md) for what each one does and how to
+register them in `settings.json`.
+
 ## Use
 
 Inside a Claude Code session:

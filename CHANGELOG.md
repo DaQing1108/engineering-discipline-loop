@@ -1,5 +1,17 @@
 # Changelog — engineering-discipline-loop
 
+## Unreleased
+Repo-completeness fix, not a skill-logic change (no `SKILL.md` version bump):
+`SKILL.md` has named and described the four `PreToolUse` hook scripts since the
+v1.13.0 → v1.15.0 sync (`00f61b4`), but this public mirror never actually shipped
+the `hooks/` directory — the text landed, the files didn't. Added `hooks/` with
+the four scripts (`discipline-loop-entry-check.js`,
+`discipline-loop-dependency-check.js`, `discipline-loop-diff-size-check.js`,
+`discipline-loop-ship-gate-check.js`) plus `hooks/README.md` covering what each
+one does and how to register them in `settings.json`, since the previous
+internal-only registration convention (a shared `hooks.json`) doesn't apply to
+external installs. Linked from the main `README.md` Install section.
+
 ## v1.16.0
 整合 loop-engineering（cobusgreyling OSS）概念的第一批補強，範圍經 RICE/YAGNI 評估後收窄
 （批次/排程模式 + loop-budget 整合延至 v1.17，理由與啟動條件見 governance.md）：
