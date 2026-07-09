@@ -91,6 +91,24 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   fi
 done
 
+# Separate concern from the leak-scanning above (checks the current working
+# tree, not the pushed diff range): every hook/doc filename this repo's own
+# Markdown names by backtick must actually exist in the repo. See
+# check-referenced-files.sh's header comment for why this exists.
+#
+# Resolved via --show-toplevel rather than dirname "$0": this script normally
+# runs as .git/hooks/pre-push, a symlink to this file, and $0 preserves the
+# invocation path through the symlink (dirname "$0" would silently resolve to
+# .git/hooks instead of scripts/, and the [ -x ] guard would then skip this
+# check with no error at all — that exact bug was caught before shipping).
+REFCHECK_SCRIPT="$(git rev-parse --show-toplevel)/scripts/check-referenced-files.sh"
+if [ ! -x "$REFCHECK_SCRIPT" ]; then
+  echo "[pre-push-sanitize] blocked: expected $REFCHECK_SCRIPT to exist and be executable, but it doesn't"
+  fail=1
+elif ! "$REFCHECK_SCRIPT"; then
+  fail=1
+fi
+
 if [ "$fail" -eq 1 ]; then
   echo "[pre-push-sanitize] push blocked — fix the above or use --no-verify to override (not recommended)"
   exit 1

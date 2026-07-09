@@ -12,6 +12,12 @@ one does and how to register them in `settings.json`, since the previous
 internal-only registration convention (a shared `hooks.json`) doesn't apply to
 external installs. Linked from the main `README.md` Install section.
 
+Also added `scripts/check-referenced-files.sh`, chained into the existing
+`pre-push-sanitize-check.sh`, so this exact class of bug (prose in `SKILL.md`
+naming a file that was never actually shipped) fails the push instead of
+sitting unnoticed for two version syncs. Also fixed a stale `E01–E11` mention
+in `README.md` (should have read `E01–E24` since the v1.16.0 sync).
+
 ## v1.16.0
 整合 loop-engineering（cobusgreyling OSS）概念的第一批補強，範圍經 RICE/YAGNI 評估後收窄
 （批次/排程模式 + loop-budget 整合延至 v1.17，理由與啟動條件見 governance.md）：

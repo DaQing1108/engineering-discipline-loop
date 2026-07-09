@@ -32,6 +32,14 @@ an optional local blocklist for maintainer-specific sensitive terms — org name
 internal product codenames, and similar — that must never be written into this
 tracked script, since the script itself ships in this public repo.
 
+It also chains in `scripts/check-referenced-files.sh`, which checks the current
+working tree (not the push diff) for a different failure mode: any `` `*.js` `` /
+`` `*.md` `` / `` `*.sh` `` filename mentioned by name in this repo's own Markdown
+must actually exist in the repo. This exists because a prior sync landed prose in
+`SKILL.md` describing four hook scripts by name without the `hooks/` directory
+itself ever being copied over — the mismatch went unnoticed for two version syncs
+since nothing checked names against the filesystem.
+
 It is **not installed automatically** (this repo has no build step to hook into).
 To enable it:
 
