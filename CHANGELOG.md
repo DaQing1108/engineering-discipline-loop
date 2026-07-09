@@ -1,5 +1,24 @@
 # Changelog — engineering-discipline-loop
 
+## v1.16.0
+整合 loop-engineering（cobusgreyling OSS）概念的第一批補強，範圍經 RICE/YAGNI 評估後收窄
+（批次/排程模式 + loop-budget 整合延至 v1.17，理由與啟動條件見 governance.md）：
+1. Step 4 新增 Path denylist 文字規則（三條比對規則：.env 系列／auth·payments·secrets·
+   credentials 目錄段／secret·credential·apikey·token 字樣的設定金鑰檔），L-STEP 2 明文
+   同樣適用；命中時輸出「Denylist 阻擋」模板等待 A/B 回覆。專案 CLAUDE.md `## Denylist`
+   區塊可覆寫預設清單。概念借自 minimal-fix，內嵌文字不建立 Skill 依賴；hook 化列 v1.17 候選
+2. Step 7-B prompt 新增「環境無法實際驗證時回報 ESCALATE_HUMAN，不得未執行宣稱 ✅」指令；
+   Step 7-C 分級表新增 ESCALATE_HUMAN 處理列（不視為失敗、不計入三次終止條件、停在 Step 7
+   輸出人工驗證清單等待指示）。補上 v1.15.0 Step 6「無 CLI/API 宣告」在 Step 7 缺少的對應
+   分支。概念借自 loop-verifier
+3. 修正既有文件 bug：v1.15.0 升版時 E19–E22 場景本體已補齊（見 v1.15.0 條目 4），但
+   eval-scenarios.md 檔頭計數文字與 E08 引用範圍文字未同步更新，遺留在「十八個」／E01–E18
+   （純文字描述滯後，場景數量本身無誤）；本次一併修正為二十四／E01–E24，並在 E08 加註提醒
+   未來新增場景需同步更新此兩處
+4. 新增 E23（denylist 阻擋）、E24（ESCALATE_HUMAN），Eval 場景表增為二十四個
+5. output-templates.md 新增「Denylist 阻擋」「ESCALATE_HUMAN」兩個輸出模板
+6. governance.md 記錄概念借用關係（非執行依賴）與 v1.17 兩個候選項目
+
 ## v1.15.0
 第一輪健檢（2026-07-06，v1.14.0 上線後 3 天，20 筆門檻已被 38 筆事件大幅超過）觸發的修法：
 1. `discipline-loop-diff-size-check.js` 修復兩個問題：(a) `Write` 建立全新檔案不再誤判為

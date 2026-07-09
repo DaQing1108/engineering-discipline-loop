@@ -116,7 +116,7 @@ exact step it stopped at.
   `.loop-state-*.md` schema, filename convention, lifecycle, and change boundaries
 - [`references/quality-standards.md`](references/quality-standards.md) — the
   three-tier delivery quality bar and the pre-ship self-review checklist
-- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.13.0
+- [`CHANGELOG.md`](CHANGELOG.md) — full version history, v1.0.0 through v1.16.0
 
 ## Using with Claude Code
 

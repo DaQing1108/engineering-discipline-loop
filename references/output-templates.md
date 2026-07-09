@@ -99,6 +99,36 @@ L4 任務需要人工完整審核後才能執行，包含：
 
 收到「proceed」→ 繼續 Step 4。未確認前不得繼續。既有套件僅版本號變化不觸發此格式。
 
+## Denylist 阻擋（Step 4／L-STEP 2 改動目標命中 path denylist 時輸出，v1.16.0 新增）
+
+```
+🚫 DENYLIST — 改動目標命中保護路徑
+檔案：[路徑]
+命中規則：[①/②/③ + 一句說明]
+
+此類檔案涉及機密或安全邊界，不自動修改。
+選擇：
+  A) 確認修改（請說明理由，理由將記入 state 檔）
+  B) 跳過此檔案，調整 Plan
+請回覆 A 或 B。
+```
+
+收到明確回覆前，NEVER 改動該檔案；回覆 A 時將理由記入 `.loop-state` 對應 step 的 summary。
+
+## ESCALATE_HUMAN（Step 7 Review Agent 因環境限制無法驗證時輸出，v1.16.0 新增）
+
+```
+⚠️ ESCALATE_HUMAN — Review 無法在此環境完成驗證
+無法驗證的項目：
+  - [項目：原因]
+需人工驗證方式：
+  - [具體步驟或指令]
+
+State 檔保留於 Step 7，等待你的驗證結果或指示後繼續。
+```
+
+不視為失敗、不計入三次終止條件；收到使用者驗證結果或指示前，不自動繼續 Step 8。
+
 ## 三次終止：⛔ LOOP BLOCKED（同一 Step 失敗達三次時輸出）
 
 ```
@@ -124,11 +154,13 @@ Step [N] 失敗 3 次，已停止執行。
 2026-07-03 14:20 | 20260703-6e4a | AC-10 | PASS(需用戶驗證)
 ```
 
-`references/hook-trigger-log.log`（依賴偵測 hook block／needs_confirmation、行數警示 hook 觸發時追加）：
+`references/hook-trigger-log.log`（依賴偵測 hook block／needs_confirmation、行數警示 hook 觸發、
+denylist 文字規則命中時追加；denylist_hit 由 agent 依 Step 4 規則寫入，非 hook 產生）：
 ```
 2026-07-03 14:05 | dependency_block | package.json：新增套件 axios
 2026-07-03 14:07 | needs_confirmation | pyproject.toml：偵測到可能的依賴變更，無法可靠解析
 2026-07-03 14:10 | line_warning | SKILL.md：本次改動 62 行
+2026-07-07 11:00 | denylist_hit | .env.production：命中規則①，等待 A/B 回覆
 ```
 
 兩份 log 皆比照 `trigger-counts.log` 慣例：本機專用、非 git 管理、無需額外 `.gitignore` 處理，

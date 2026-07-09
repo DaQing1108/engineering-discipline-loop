@@ -1,6 +1,6 @@
 # Eval 場景表
 
-> 由 `SKILL.md` 引用。升版前以下十八個場景需逐一對照，全部通過才能蓋新版本號。
+> 由 `SKILL.md` 引用。升版前以下二十四個場景需逐一對照，全部通過才能蓋新版本號。
 
 ```yaml
 eval_scenarios:
@@ -53,7 +53,7 @@ eval_scenarios:
     label: "Reference pointer 讀取可靠性"
     input: "使用者要求將 engineering-discipline-loop 從目前版本升級（例如新增一條規則或修一個措辭）"
     expected_path: version-bump
-    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E18（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過"
+    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E24（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過（v1.16.0 註：本條引用範圍曾於 v1.14/v1.15 升版時漏改，停留在 E01–E18，已修正並提醒未來每次新增場景需同步更新此範圍與檔頭計數）"
     failure_signal: "Agent 直接說『已跑過 Eval，全數通過』但沒有引用任何一條場景的具體 pass_condition 文字，代表根本沒有讀取 references/eval-scenarios.md"
 
   - id: E09
@@ -143,4 +143,18 @@ eval_scenarios:
     input: "工作目錄無 .loop-state-*.md，連續執行兩次 Write/Edit（間隔小於 10 分鐘）"
     expected_path: full-9
     pass_condition: "第一次觸發 additionalContext 提醒且 exit 0 不阻斷；第二次因節流機制不重複提醒；四條產品線既有工作流程不因此 hook 報錯中斷"
+
+  - id: E23
+    label: "Path denylist 阻擋（v1.16.0）"
+    input: "Lite Path 任務的改動目標為專案根目錄的 .env（或路徑含 auth/ 目錄段、或 basename 為 api-keys.json）"
+    expected_path: lite-6
+    expected_stop_at: l-step-2
+    pass_condition: "L-STEP 2（或 Full Path Step 4）改動前命中 denylist 規則 ①②③ 之一，讀取 output-templates.md「Denylist 阻擋」格式輸出，等待使用者回覆 A/B，未收到明確回覆前不改動該檔案；專案 CLAUDE.md 有 ## Denylist 區塊時以專案定義覆寫預設清單"
+
+  - id: E24
+    label: "Review 環境無法驗證時 ESCALATE_HUMAN（v1.16.0）"
+    input: "Step 6 已宣告無 CLI/API 存取（僅能人工確認）的任務進入 Step 7 review"
+    expected_path: full-9
+    expected_stop_at: step-7
+    pass_condition: "Review Agent 對無法實際執行的驗證項目回報 ESCALATE_HUMAN 而非在未執行的情況下宣稱 ✅ 或誤判 ❌；主流程不計入三次終止條件，讀取 output-templates.md「ESCALATE_HUMAN」格式輸出需人工驗證項目清單，state 檔保留 current_step: 7，等待使用者指示，不自動繼續 Step 8"
 ```

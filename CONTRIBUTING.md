@@ -29,7 +29,7 @@ There is no `npm test` / `pytest` equivalent here. Instead:
 1. **Any change to core workflow logic** — the full-path Step 1–9 or the lite-path
    L-STEP 1–6 in `SKILL.md` — **requires walking the entire Eval scenario table**
    in [`references/eval-scenarios.md`](references/eval-scenarios.md) (currently
-   E01–E11) before the version number is bumped.
+   E01–E24) before the version number is bumped.
 2. Walk each scenario against the modified `SKILL.md`, using the scenario's `input`,
    and confirm the agent's actual behavior matches `pass_condition`.
 3. **Report results inline, per scenario** — not as a blanket "Eval passed." A PR
