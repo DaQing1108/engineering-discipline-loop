@@ -1,2 +1,9 @@
 # Runtime artifact — Step 1 trigger-condition counter, created on first use, not shipped in repo
 references/trigger-counts.log
+
+# Maintainer-specific sensitive-term list for scripts/pre-push-sanitize-check.sh.
+# Never commit this — see CONTRIBUTING.md for what belongs in it.
+.sanitize-blocklist.local
+
+# engineering-discipline-loop state files (local task tracking, not repo content)
+.loop-state-*.md

@@ -22,6 +22,47 @@ skills directory:
 cp -r . ~/.claude/skills/engineering-discipline-loop
 ```
 
+### Optional: Pre-Push Sanitization Check
+
+This repo mirrors content synced in from a private, non-public skill definition.
+`scripts/pre-push-sanitize-check.sh` is a lightweight guard that scans every commit
+in a push range (not just the tip diff) for two things: generic, always-on checks
+(your actual home-directory path, common secret patterns) that need no setup, and
+an optional local blocklist for maintainer-specific sensitive terms — org names,
+internal product codenames, and similar — that must never be written into this
+tracked script, since the script itself ships in this public repo.
+
+It is **not installed automatically** (this repo has no build step to hook into).
+To enable it:
+
+```bash
+ln -sf ../../scripts/pre-push-sanitize-check.sh .git/hooks/pre-push
+chmod +x .git/hooks/pre-push
+```
+
+**This does not travel with the repo.** Cloning fresh — including on another
+machine, or after `git filter-repo` style operations that remove `origin` and
+require re-adding it — starts unprotected until you re-run the two lines above.
+There is currently no CI-side or branch-protection backstop for this specific
+check (GitHub secret scanning is enabled on this repo, but it only catches
+credential-shaped strings, not organization/product-name-style leaks — this
+hook is presently the only line of defense against that category).
+
+The home-directory check can false-positive if your account name happens to
+match a common path fragment (e.g. an account literally named `dev` or `test`).
+Set `SANITIZE_SKIP_HOME_CHECK=1` before pushing to skip just that check if it's
+misfiring on unrelated content.
+
+If you maintain your own private/public sync like this repo does, create
+`.sanitize-blocklist.local` at the repo root (already gitignored) with one literal
+string per line — the hook reads it if present and only runs the generic checks
+if it's absent. This complements, but does not replace, a full content review
+before syncing private material into a public repo.
+
+The same "hook lives in `.git/hooks/`, not auto-installed" pattern applies to the
+existing `pre-commit` markdown-lint check in this repo — neither hook currently
+has a setup script; both are opt-in, documented here for anyone who wants them.
+
 ## Verification Process (Required Before Any Version Bump)
 
 There is no `npm test` / `pytest` equivalent here. Instead:
