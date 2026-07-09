@@ -107,9 +107,9 @@ exact step it stopped at.
 
 ## Reference Material
 
-- [`references/eval-scenarios.md`](references/eval-scenarios.md) — the eleven manual
-  eval scenarios (E01–E11) used to validate the skill's actual behavior before every
-  version bump (there is no automated test runner for this — see
+- [`references/eval-scenarios.md`](references/eval-scenarios.md) — the twenty-four
+  manual eval scenarios (E01–E24) used to validate the skill's actual behavior
+  before every version bump (there is no automated test runner for this — see
   [CONTRIBUTING.md](CONTRIBUTING.md))
 - [`references/governance.md`](references/governance.md) — ownership, optional
   integrations, update triggers, and a structured known-limitations table
