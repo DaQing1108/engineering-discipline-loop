@@ -137,6 +137,14 @@ For working on this repository itself (not just using the skill it ships), see
 
 MIT — see [LICENSE](LICENSE)
 
+## Governance
+
+- Branch: `main`
+- Changes should go through pull requests
+- Repo validation is documented in [CONTRIBUTING.md](CONTRIBUTING.md) and enforced in
+  [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- File ownership defaults to [`.github/CODEOWNERS`](.github/CODEOWNERS)
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
