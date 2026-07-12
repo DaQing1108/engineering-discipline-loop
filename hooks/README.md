@@ -17,7 +17,7 @@ Each script:
 
 | Script | Hook event | Matcher | Behavior |
 |---|---|---|---|
-| `discipline-loop-entry-check.js` | PreToolUse | `Write\|Edit\|MultiEdit` | Warns once per 10 min per directory if no `.loop-state-*.md` exists yet |
+| `discipline-loop-entry-check.js` | PreToolUse | `Write\|Edit\|MultiEdit` | Denies edits to code files (by extension) when no `.loop-state-*.md` exists yet; docs and tmp/memory paths pass through; a session-scoped bypass marker (command shown in the deny message) is the explicit, user-authorized escape hatch |
 | `discipline-loop-dependency-check.js` | PreToolUse | `Write\|Edit\|MultiEdit` | Blocks (exit 2) when a manifest edit adds a new top-level dependency, until Step 3 confirms it |
 | `discipline-loop-diff-size-check.js` | PreToolUse | `Write\|Edit\|MultiEdit` | Warns when a single edit adds more than 50 net-new lines |
 | `discipline-loop-ship-gate-check.js` | PreToolUse | `Bash` | Warns before `git commit` if `.loop-state` shows Step 7.5 was reached but no matching AC-verification log entry exists |
@@ -71,8 +71,10 @@ Each script:
    `~` inside `command`. Restart Claude Code (or start a new session) after
    editing `settings.json` — hooks are read at session start.
 
-3. Verify they're wired up: make a throwaway edit in a fresh directory (no
-   `.loop-state-*.md` present) and confirm you see the entry-check reminder.
+3. Verify they're wired up: attempt a throwaway edit to a code file (e.g. a
+   `.js` or `.py`) in a fresh directory (no `.loop-state-*.md` present) and
+   confirm the entry-check denies it with the gate message; a `.md` edit in
+   the same directory should pass through untouched.
 
 ## Known limitation
 

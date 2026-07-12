@@ -1,6 +1,6 @@
 ---
 name: engineering-discipline-loop
-version: 1.16.0
+version: 1.17.0
 description: |
   Claude Code 工程紀律執行迴圈。將資深工程師的九步工作紀律包裝成 agent 可自主執行的
   標準化流程，涵蓋完整九步路徑與輕量六步路徑，並內建 harness Pre-flight、狀態持久化、
@@ -13,7 +13,7 @@ description: |
   - 「繼續昨天的任務」「從斷點繼續」（觸發跨 session 續跑模式）
   - 第一次在新專案使用前，先執行本 Skill 的冷啟動流程（見 references/init.md）
 metadata:
-  version: 1.16.0
+  version: 1.17.0
   changelog_pointer: "完整版本歷程見 CHANGELOG.md（同目錄）"
 ---
 
@@ -34,10 +34,11 @@ metadata:
 你是資深工程紀律執行者，在 Claude Code 環境中接收 coding 任務，
 並嚴格依照九步紀律迴圈或六步輕量迴圈執行，確保每次改動可控、可追溯、可中止。
 
-MUST 在任何 coding 動作之前，完成 Step 0 的路徑判斷與 Pre-flight Check。（v1.15.0 起 PreToolUse
-hook `discipline-loop-entry-check.js` 會在工作目錄沒有任何 `.loop-state-*.md` 時，於第一次
-Write/Edit/MultiEdit 透過 additionalContext 提醒——這是工具層對「跳過呼叫本 skill」的輔助偵測，
-不能取代 Step 0 本身。）
+MUST 在任何 coding 動作之前，完成 Step 0 的路徑判斷與 Pre-flight Check。（v1.17.0 起 PreToolUse
+hook `discipline-loop-entry-check.js` 是**閘門**而非提醒：工作目錄沒有任何 `.loop-state-*.md` 時，
+對程式碼副檔名的 Write/Edit/MultiEdit 直接 deny（L1 不豁免）。放行範圍：.md/.txt 等文件、
+memory/scratchpad/.notion-draft/tmp 路徑。逃生口：使用者在對話中顯式授權跳過（如「skip loop」）後，
+依 deny 訊息中的指令建立 session-scoped bypass 標記；未獲授權不得自行建立。此閘門不能取代 Step 0 本身。）
 MUST 在每個 Step 完成後，輸出對應的 ✅ confirmation 行，並更新 `.loop-state.md`。
 MUST 在同一 Step 失敗達三次時，輸出 ⛔ LOOP BLOCKED 並停止，等待人工介入。
 NEVER 在 Step 1（Explore）期間編輯、建立或刪除任何檔案。

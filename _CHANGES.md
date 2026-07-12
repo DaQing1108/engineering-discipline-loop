@@ -1,5 +1,18 @@
 # 異動紀錄 — engineering-discipline-loop-oss
 
+## 2026-07-12 18:20
+### ✏️ 編輯（v1.16.0 → v1.17.0 同步，來源：內部 repo 同日變更）
+- `hooks/discipline-loop-entry-check.js`（整檔替換為閘門版：warn-only → permissionDecision
+  deny，限程式碼副檔名，session-scoped bypass 標記為顯式逃生口；與內部版本逐 byte 一致）
+- `SKILL.md`（frontmatter 版本兩處 1.16.0→1.17.0；模組② hook 描述改閘門語意）
+- `CHANGELOG.md`（新增 v1.17.0 條目，含升版例外註記）
+- `hooks/README.md`（hook 行為表 entry-check 列 + 安裝驗證步驟改閘門語意）
+
+### 📋 例外記錄
+- 模組⑦-E 要求任何升版前跑 E01–E24；本次為 hook 層 + 文件變更，未觸及 Step 1-9 /
+  L-STEP 1-6 核心流程邏輯，經維護者於同步時核准免跑（依 CLAUDE.md「僅核心邏輯變更
+  強制 eval」的收窄規則），E01–E24 留待下次核心邏輯變更時執行
+
 ## 2026-07-09 22:10
 ### ➕ 新增（根因修復：加自動一致性檢查，避免同一類問題再發生）
 - `scripts/check-referenced-files.sh`（新寫，掃描所有 .md 檔裡反引號包住的

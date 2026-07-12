@@ -18,6 +18,22 @@ naming a file that was never actually shipped) fails the push instead of
 sitting unnoticed for two version syncs. Also fixed a stale `E01–E11` mention
 in `README.md` (should have read `E01–E24` since the v1.16.0 sync).
 
+## v1.17.0
+entry-check 從「軟提醒」升級為「閘門」，堵住「模型自認 L1 所以跳過 loop」的漏洞
+（實測較強的模型對 additionalContext 軟提醒一律無視，直接寫碼）：
+1. `discipline-loop-entry-check.js`：無 `.loop-state-*.md` 時，對程式碼副檔名的
+   Write/Edit/MultiEdit 回傳 `permissionDecision: deny`（原為 additionalContext 警告 +
+   10 分鐘節流，節流已隨之移除）。放行範圍：非程式碼副檔名（.md/.txt 等）、
+   memory／scratchpad／.notion-draft／tmp 路徑，日常文件與狀態檔寫入不受影響
+2. 逃生口：session-scoped bypass 標記（`$TMPDIR/.discipline-loop-bypass-<session_id>`），
+   deny 訊息內含確切 touch 指令；模型僅在使用者於對話中顯式授權（如「skip loop」）後
+   才可建立，讓「跳過 loop」成為可稽核的顯式動作而非模型默默判斷。fail-open 行為維持不變
+3. SKILL.md 模組②的 hook 描述、hooks/README.md 的行為表與驗證說明同步更新為閘門語意
+4. 驗證：block（.py/.sh 無 state）、pass（.md、tmp 路徑、有 state）、bypass 標記生效、
+   壞 JSON fail-open，共 7 個手動案例通過
+5. 升版例外註記：本次為 hook 層 + 文件變更，未觸及 Step 1-9 / L-STEP 1-6 核心流程邏輯，
+   經維護者核准依 CLAUDE.md 收窄規則免跑 E01–E24，留待下次核心邏輯變更時執行
+
 ## v1.16.0
 整合 loop-engineering（cobusgreyling OSS）概念的第一批補強，範圍經 RICE/YAGNI 評估後收窄
 （批次/排程模式 + loop-budget 整合延至 v1.17，理由與啟動條件見 governance.md）：
