@@ -1,5 +1,22 @@
 # 異動紀錄 — engineering-discipline-loop-oss
 
+## 2026-07-17
+### ✏️ 編輯（同步，來源：內部 repo 同期變更，已去識別化）
+- `SKILL.md`（新增 5 段 mattpocock-skills 交叉引用標註：角色定位 NEVER 規則 + Step
+  0-B／4／6／7；frontmatter 版本不變，屬純文字補充，非核心邏輯變更）
+- `references/governance.md`（新增 mattpocock-skills 概念借用依賴；新增 E22 已解決條目；
+  新增 entry-check cwd 檢查在多子專案 workspace 下的已知限制，已移除內部識別資訊與內部
+  commit hash，改用通用敘述）
+- `references/eval-scenarios.md`（E22 場景改寫為 v1.17.0 deny 語意，取代過期的 v1.15.0
+  warn+節流描述）
+- `CHANGELOG.md`（Unreleased 區塊新增對應段落）
+
+### 📋 例外記錄
+- 未觸及 Step 1-9 / L-STEP 1-6 核心流程判斷邏輯，經維護者於同步時核准免跑 E01–E24
+  （比照 2026-07-12 同步先例）
+- 不同步：`eval-quickcheck/`（此公開 repo 本無自動化測試，CLAUDE.md 已明文）、
+  `README.md`（內部版該次改動為工作日誌格式的 checkpoint 記錄，與此 repo README 用途不同）
+
 ## 2026-07-12 18:20
 ### ✏️ 編輯（v1.16.0 → v1.17.0 同步，來源：內部 repo 同日變更）
 - `hooks/discipline-loop-entry-check.js`（整檔替換為閘門版：warn-only → permissionDecision

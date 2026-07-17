@@ -18,6 +18,26 @@ naming a file that was never actually shipped) fails the push instead of
 sitting unnoticed for two version syncs. Also fixed a stale `E01–E11` mention
 in `README.md` (should have read `E01–E24` since the v1.16.0 sync).
 
+Also not a skill-logic change (no `SKILL.md` version bump): added five
+cross-reference annotations pointing to the optional
+[mattpocock/skills](https://github.com/mattpocock/skills) plugin (`/tdd`,
+`/code-review`, `/grill-with-docs`) at the points in `SKILL.md` where an
+agent might otherwise reach for those model-invoked skills mid-loop and
+bypass this loop's own step ordering and state tracking — one new NEVER
+rule plus a "technique you can borrow, but not a substitute for this Step"
+note at Step 0-B, Step 4, Step 6, and Step 7. `references/governance.md`
+records this as an optional, non-execution dependency, matching the
+existing pattern for `minimal-fix`/`loop-verifier`.
+
+Also fixed `references/eval-scenarios.md`'s E22 scenario, which still
+described the pre-v1.17.0 warn+throttle entry-check behavior instead of
+the current deny-gate semantics — caught while walking the eval table for
+an unrelated change and confirmed stale against `SKILL.md`'s own module ②
+description. Recorded the fix, and a newly-noticed limitation (the gate's
+`hasLoopState(cwd)` check doesn't account for multi-repo parent-workspace
+layouts where session cwd never matches any sub-project's state-file
+location), in `references/governance.md`'s known-limitations table.
+
 ## v1.17.0
 entry-check 從「軟提醒」升級為「閘門」，堵住「模型自認 L1 所以跳過 loop」的漏洞
 （實測較強的模型對 additionalContext 軟提醒一律無視，直接寫碼）：

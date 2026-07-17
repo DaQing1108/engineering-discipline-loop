@@ -139,10 +139,10 @@ eval_scenarios:
     pass_condition: "discipline-loop-ship-gate-check.js 於 stdout 輸出 additionalContext 警告，exit 0 不阻斷，commit 正常完成"
 
   - id: E22
-    label: "entry-check hook 提醒與節流（v1.15.0）"
-    input: "工作目錄無 .loop-state-*.md，連續執行兩次 Write/Edit（間隔小於 10 分鐘）"
+    label: "entry-check hook 閘門化（v1.17.0，取代 v1.15.0 warn+節流版）"
+    input: "工作目錄無 .loop-state-*.md，對 CODE_EXTENSIONS 白名單內的副檔名（例：.py／.js）執行 Write/Edit"
     expected_path: full-9
-    pass_condition: "第一次觸發 additionalContext 提醒且 exit 0 不阻斷；第二次因節流機制不重複提醒；四條產品線既有工作流程不因此 hook 報錯中斷"
+    pass_condition: "hook 透過 stdout JSON 回傳 hookSpecificOutput.permissionDecision: deny（非以 exit code 表示，exit 恆為 0）；v1.17.0 起無節流機制，未建立 .loop-state-*.md 或 bypass 標記前，同一目錄每次呼叫都 deny；對非 CODE_EXTENSIONS 副檔名（.md／.txt 等文件、memory／scratchpad／.notion-draft／tmp 路徑）一律放行，不論是否有 state 檔；.loop-state-*.md 已存在時放行；使用者於對話中顯式授權跳過（如「skip loop」）後，agent 可建立 session-scoped bypass 標記（$TMPDIR/.discipline-loop-bypass-<session_id 或 md5(cwd)>），該 session 後續呼叫即放行"
 
   - id: E23
     label: "Path denylist 阻擋（v1.16.0）"

@@ -21,6 +21,10 @@
 - 概念借用（非執行依賴，v1.16.0）：`minimal-fix` 的 path denylist、`loop-verifier` 的
   ESCALATE_HUMAN 判定，均以文字規則內嵌，不呼叫該兩個 Skill；上游 loop-engineering
   更新時不自動同步，需人工比對
+- 概念借用（非執行依賴）：若你的環境另外安裝了 [mattpocock/skills](https://github.com/mattpocock/skills)，
+  SKILL.md 於 Step 0-B／Step 4／Step 6／Step 7 標註了可借用其 `/tdd`、`/code-review`、
+  `/grill-with-docs` 的技巧作為輔助手法；未安裝該套件不影響本 Skill 完整運作，這些標註
+  只是選用參考，不呼叫該套件的 skill 取代本 loop 的 Step 順序
 
 **v1.17 候選項目（2026-07-07 v1.16.0 規劃時評估後延期）：**
 
@@ -71,4 +75,6 @@ v1.14.0 於 2026-07-03 上線，健檢門檻（20 筆或六週）於 **3 天內*
 | skill 目錄本身無版本控制（僅有落後版本的 GitHub 鏡像 `engineering-discipline-loop-oss`） | ✅ 已解決（2026-07-07）：skill 目錄已建立私有本地 git repo，與公開 OSS mirror 分開管理；本機遙測 log 透過 `.gitignore` 排除，維持既有「非 git 管理」設計；discipline-loop 專屬 hook script 於 repo 內 `hooks/`（2026-07-09 起改為對共用全域 hooks 設定檔目錄的 symlink，見下方新增列，不再是需手動同步的複本）；該全域 hooks 設定檔本身是跨 skill 共用的執行期設定，非 discipline-loop 所有，刻意不納入此 repo | 已解決，無殘留範圍 | ✅ v1.16 |
 | `diff-size-check.js` 從 v1.14.0 的 PostToolUse+async 改為 v1.15.0 的 PreToolUse+同步，每次 Write/Edit/MultiEdit 新增約 30-80ms 的 hook 進程啟動延遲（三支 hook 各自獨立進程，累計可能 ~150-250ms） | 低（是 additionalContext 機制的必要代價：警告要在工具執行前送達才有意義，PreToolUse 無法 async） | 已知取捨，不視為缺陷；若未來延遲明顯影響體驗，可評估把三支 hook 合併成一支進程以省去重複啟動成本 | — |
 | 官方文件記載同一 matcher 下多支 hook 平行執行、各自 additionalContext 都會送達，但實測一度只看到其中一支訊息（後續發現主因是測試方法混淆了 scratch 目錄與 session 實際 cwd，無法完全排除是否仍有平行執行的邊界案例） | 低（v1.15.0 已改為每支 hook 獨立 matcher 區塊，此寫法官方文件確認安全，重測後正確） | 已採用較保守寫法；若日後又混用同一 matcher 掛多支 hook 且行為異常，優先檢查此處 | — |
+| ✅ 已解決：`eval-scenarios.md` E22 的 `pass_condition` 曾落後於 v1.17.0 的 entry-check 閘門化——SKILL.md 角色定位與 frontmatter 已描述「PreToolUse deny 閘門，L1 不豁免」，但 E22 場景文字仍描述較早版本的 warn-only + 節流行為 | 已解決：E22 改寫為 deny 語意（含 escape hatch） | 已解決，無殘留範圍 | ✅ v1.17 |
+| entry-check hook（v1.17.0）的 `hasLoopState(cwd)` 檢查的是 session 的 cwd，不是目標檔案所在目錄，也不是子專案 git repo 根目錄；若你在一個「非 git 的 meta-workspace，內含多個獨立子專案 git repo」的多專案佈局下使用（例如一個統一的工作目錄底下放了好幾個獨立專案），session cwd 可能固定停在該 workspace 根目錄，與 SKILL.md 慣例的「state 檔放在專案根目錄」（子專案 git repo 根目錄）不一致，導致對子專案內任何 CODE_EXTENSIONS 副檔名的編輯即使子專案根目錄已有正確的 `.loop-state-*.md` 仍會被 deny | 中（非破壞性，deny 訊息本身清楚可操作；但每次跨子專案編輯 code 檔案都要手動應對，且容易被誤判成「該不該 skip loop」的授權問題，而不是路徑不對的技術問題） | 目前 workaround：在 session 實際 cwd（workspace 根目錄）額外放一份鏡像 `.loop-state-*.md`，任務結束時與子專案正本一併清除，不建議使用 bypass 標記（bypass 語意是「使用者決定跳過」，與此情境不符）。長期解法方向待評估：(a) hook 改為向上遞迴尋找最近的 `.loop-state-*.md` 或最近的 `.git` 目錄，(b) 或 SKILL.md 明文規定多子專案 workspace 情境下 state 檔應放 session cwd 而非子專案根目錄 | 待評估 |
 | ✅ 已解決（2026-07-09）：`SKILL.md` 明文指名 4 支 hook script 已兩個版本週期（v1.13.0→v1.15.0→v1.16.0），但這個公開鏡像從未實際同步 `hooks/` 目錄——文字描述跟著既有的「同步 = 複製 .md 檔」慣例一起過去，檔案本身屬於過去慣例沒涵蓋的新類別，沒人多想一步去搬；且沒有任何機制比對「文件講的」與「repo 裡實際有的」，導致落差安靜存在到被人工查證才發現 | ✅ 已解決：新增 `scripts/check-referenced-files.sh`（掃描 .md 內反引號檔名、比對 repo 實際檔案，串接進 `pre-push-sanitize-check.sh`，已用「先刪掉一支 hook 檔案再跑」驗證真的會擋下同類回歸）。經驗：「同步到別的地方」這類判斷值得花一分鐘實際 `find`/`grep`/`git log` 查證現況，而不是憑印象回答 | 已解決，無殘留範圍（不涉及 SKILL.md 版本異動，屬 repo/tooling 修復） | — |
