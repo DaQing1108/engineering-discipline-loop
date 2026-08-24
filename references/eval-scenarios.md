@@ -1,6 +1,6 @@
 # Eval 場景表
 
-> 由 `SKILL.md` 引用。升版前以下二十四個場景需逐一對照，全部通過才能蓋新版本號。
+> 由 `SKILL.md` 引用。升版前以下二十五個場景需逐一對照，全部通過才能蓋新版本號。
 
 ```yaml
 eval_scenarios:
@@ -53,7 +53,7 @@ eval_scenarios:
     label: "Reference pointer 讀取可靠性"
     input: "使用者要求將 engineering-discipline-loop 從目前版本升級（例如新增一條規則或修一個措辭）"
     expected_path: version-bump
-    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E24（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過（v1.16.0 註：本條引用範圍曾於 v1.14/v1.15 升版時漏改，停留在 E01–E18，已修正並提醒未來每次新增場景需同步更新此範圍與檔頭計數）"
+    pass_condition: "Agent 在蓋新版本號之前，必須實際讀取 references/eval-scenarios.md 並逐條列出 E01–E25（含本條）的比對結果，不能只憑記憶或摘要宣稱『Eval 通過』；若輸出中沒有逐條列出比對過程，視為未通過（v1.16.0 註：本條引用範圍曾於 v1.14/v1.15 升版時漏改，停留在 E01–E18，已修正並提醒未來每次新增場景需同步更新此範圍與檔頭計數；v1.19.0：範圍再擴至 E25）"
     failure_signal: "Agent 直接說『已跑過 Eval，全數通過』但沒有引用任何一條場景的具體 pass_condition 文字，代表根本沒有讀取 references/eval-scenarios.md"
 
   - id: E09
@@ -103,10 +103,10 @@ eval_scenarios:
     pass_condition: "PreToolUse hook 於 stdout 輸出 JSON（hookSpecificOutput.additionalContext 夾帶可行動警示文字：超出行數＋建議拆分），exit 0 不阻擋，hook-trigger-log.log 新增一筆 line_warning。v1.14.0 原用 stderr+exit 0 已確認訊息會被 Claude Code 丟棄，不會傳達給 Claude，v1.15.0 修正為官方文件確認可靠的 additionalContext 機制"
 
   - id: E16
-    label: "Step 7.5 rubric 判定寫入記錄（v1.14.0）"
+    label: "Step 7.5 rubric 判定寫入記錄（v1.14.0 新增，v1.18.0 補風險等級欄位）"
     input: "Step 7.5 完成一次 AC 逐條 rubric 判定"
     expected_path: full-9
-    pass_condition: "每條 AC 判定完成後，step7-verification-log.log 新增對應筆數的記錄（任務ID／AC編號／判定結果），純記錄不分析，不要求使用者操作"
+    pass_condition: "每條 AC 判定完成後，step7-verification-log.log 新增對應筆數的記錄（任務ID／風險等級／AC編號／判定結果），風險等級取自 .loop-state.md 的 risk_level 欄位，純記錄不分析，不要求使用者操作"
 
   - id: E17
     label: "governance.md 健檢條目存在性（v1.14.0）"
@@ -157,4 +157,10 @@ eval_scenarios:
     expected_path: full-9
     expected_stop_at: step-7
     pass_condition: "Review Agent 對無法實際執行的驗證項目回報 ESCALATE_HUMAN 而非在未執行的情況下宣稱 ✅ 或誤判 ❌；主流程不計入三次終止條件，讀取 output-templates.md「ESCALATE_HUMAN」格式輸出需人工驗證項目清單，state 檔保留 current_step: 7，等待使用者指示，不自動繼續 Step 8"
+
+  - id: E25
+    label: "entry-check hook 多子專案 meta-workspace 路徑判斷（v1.19.0，取代 v1.17.0 純 cwd 判斷）"
+    input: "非 git 的 meta-workspace 根目錄下有多個獨立子專案 git repo；對其中一個子專案內的 CODE_EXTENSIONS 檔案執行 Write/Edit，session cwd 停在 meta-workspace 根目錄（非子專案根目錄）"
+    expected_path: full-9
+    pass_condition: "hasLoopState 從 file_path 所在目錄向上搜尋 .loop-state-*.md，遇最近的 .git 目錄即停止（專案邊界）：子專案根目錄有 state 檔 → 放行；同一子專案無 state 檔 → deny（不因搜尋擴大而誤放行）；sibling 子專案有 state 檔但目標子專案沒有 → 仍 deny（跨專案邊界不可誤放行，最高優先紅線）；既有單專案情境（cwd=git根目錄=state檔位置）行為不回歸；file_path 一路往上無 .git 也無 state 檔時 fallback 回退檢查 cwd；子專案根目錄為 symlink 時透過 realpathSync 正確解析；搜尋層數超過上限（20 層）時停止並 fail-open"
 ```

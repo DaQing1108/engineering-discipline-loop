@@ -1,5 +1,46 @@
 # Changelog — engineering-discipline-loop
 
+## v1.19.0 (2026-08-24)
+Fixes a state-file path misjudgment in multi-project meta-workspace layouts
+(see the known-limitations table in `references/governance.md`):
+1. `hasLoopState` in `hooks/discipline-loop-entry-check.js` no longer checks
+   only the session's cwd. It now walks upward from the edited file's
+   directory looking for `.loop-state-*.md`, stopping at the nearest `.git`
+   directory (project boundary) so a sibling sub-project's state file can
+   never satisfy this project's gate — tree topology guarantees siblings
+   can never be each other's ancestor, independent of the `.git` check.
+   Falls back to the pre-v1.19.0 cwd-only check only when no `.git` is found
+   within a 20-level depth cap (non-git dirs, CI environments). Adds
+   `findLoopStateUpward`/`hasStateFileIn`; resolves symlinks via
+   `realpathSync`.
+2. Adds `references/eval-scenarios.md` E25, covering: sub-project with/without
+   a state file, sibling projects never leaking gate access to each other,
+   unchanged single-project behavior, non-git fallback, and symlinked
+   sub-project roots.
+3. New known limitation (documented, not fixed): nested `.git` directories
+   (git submodules, vendored dependencies) will hit the inner `.git`
+   boundary before reaching a real state file further up — fail-closed, not
+   a leak, and treated as consistent behavior (editing vendored code should
+   go through the same discipline) rather than a defect. See governance.md
+   for the full reasoning against loosening the `.git` boundary.
+4. Eval scenario table expands from E01–E24 (24) to E01–E25 (25).
+
+## v1.18.0 (2026-08-24)
+Minimal change prompted by a periodic model-upgrade health check
+(`references/governance.md`): `step7-verification-log.log` entries now
+include a risk-level column (task ID / risk level / AC / result, replacing
+task ID / AC / result), taken directly from `.loop-state.md`'s `risk_level`
+(the Step 0-C decision) — no new classification logic needed. Purpose: the
+original "B2" measurement design tracked Step 7 checklist accuracy in the
+aggregate; the more useful question is which task complexity tier needs
+which model capability, and a flat PASS/FAIL count can't answer that —
+tiering by risk level can, once enough data accumulates. Pure log-format
+addition; no STOP point, gate, or deny logic changes anywhere in Step 1–9.
+Pre-v1.18.0 log entries are left as-is, not backfilled. Also updates
+`SKILL.md` (Step 7.5 write instructions), `references/output-templates.md`
+(log format example), and `references/eval-scenarios.md` (E16
+pass_condition).
+
 ## Unreleased
 Repo-completeness fix, not a skill-logic change (no `SKILL.md` version bump):
 `SKILL.md` has named and described the four `PreToolUse` hook scripts since the

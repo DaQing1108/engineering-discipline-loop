@@ -1,6 +1,6 @@
 ---
 name: engineering-discipline-loop
-version: 1.17.0
+version: 1.19.0
 description: |
   Claude Code 工程紀律執行迴圈。將資深工程師的九步工作紀律包裝成 agent 可自主執行的
   標準化流程，涵蓋完整九步路徑與輕量六步路徑，並內建 harness Pre-flight、狀態持久化、
@@ -13,7 +13,7 @@ description: |
   - 「繼續昨天的任務」「從斷點繼續」（觸發跨 session 續跑模式）
   - 第一次在新專案使用前，先執行本 Skill 的冷啟動流程（見 references/init.md）
 metadata:
-  version: 1.17.0
+  version: 1.19.0
   changelog_pointer: "完整版本歷程見 CHANGELOG.md（同目錄）"
 ---
 
@@ -35,8 +35,9 @@ metadata:
 並嚴格依照九步紀律迴圈或六步輕量迴圈執行，確保每次改動可控、可追溯、可中止。
 
 MUST 在任何 coding 動作之前，完成 Step 0 的路徑判斷與 Pre-flight Check。（v1.17.0 起 PreToolUse
-hook `discipline-loop-entry-check.js` 是**閘門**而非提醒：工作目錄沒有任何 `.loop-state-*.md` 時，
-對程式碼副檔名的 Write/Edit/MultiEdit 直接 deny（L1 不豁免）。放行範圍：.md/.txt 等文件、
+hook `discipline-loop-entry-check.js` 是**閘門**而非提醒：改動目標檔案所屬專案（從檔案所在目錄
+向上搜尋至最近的 `.git` 邊界，v1.19.0 起依此判斷，非僅看 session cwd）沒有任何
+`.loop-state-*.md` 時，對程式碼副檔名的 Write/Edit/MultiEdit 直接 deny（L1 不豁免）。放行範圍：.md/.txt 等文件、
 memory/scratchpad/.notion-draft/tmp 路徑。逃生口：使用者在對話中顯式授權跳過（如「skip loop」）後，
 依 deny 訊息中的指令建立 session-scoped bypass 標記；未獲授權不得自行建立。此閘門不能取代 Step 0 本身。）
 MUST 在每個 Step 完成後，輸出對應的 ✅ confirmation 行，並更新 `.loop-state.md`。
@@ -517,8 +518,10 @@ AC-2. [AC 描述]
 | 全部 ✅ | 繼續 Step 8 |
 | 有 ❌ | 說明哪條未達成、差距在哪，等待你決定：A) 補實作後重跑 Step 7.5（計入三次終止條件）B) 接受現況繼續（需說明原因） |
 
-**判定結果 MUST 追加寫入 `references/step7-verification-log.log`**（任務 ID／AC 編號／判定結果，
-純記錄不分析，不要求使用者操作）。
+**判定結果 MUST 追加寫入 `references/step7-verification-log.log`**（任務 ID／風險等級／AC 編號／
+判定結果，純記錄不分析，不要求使用者操作）。風險等級取自 `.loop-state.md` 的 `risk_level`
+欄位（0-C 判定結果），供健檢時按任務複雜度分層量測各等級的 FAIL／rework 率，定位模型能力邊界
+（v1.18.0 新增，見 `references/governance.md` 第二輪健檢紀錄）。
 
 `.loop-state.md` 更新：
 ```yaml
@@ -678,7 +681,7 @@ MUST 在 /ship 或 L-STEP 6 SHIP 前，讀取 `references/quality-standards.md`�
 
 ## Eval 場景表（升版前必跑）　　　　　← 附模組 ⑦-E
 
-MUST 在任何版本號變更前，讀取 `references/eval-scenarios.md`，逐一對照全部二十四個場景（E01–E24），全部通過才能蓋新版本號。逐條列出比對結果，不得僅憑摘要宣稱「Eval 通過」（見 E08）。
+MUST 在任何版本號變更前，讀取 `references/eval-scenarios.md`，逐一對照全部二十五個場景（E01–E25），全部通過才能蓋新版本號。逐條列出比對結果，不得僅憑摘要宣稱「Eval 通過」（見 E08）。
 
 ---
 

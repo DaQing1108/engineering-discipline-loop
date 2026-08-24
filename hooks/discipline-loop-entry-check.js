@@ -1,11 +1,19 @@
 #!/usr/bin/env node
-// PreToolUse hook for engineering-discipline-loop v1.17.0.
+// PreToolUse hook for engineering-discipline-loop v1.19.0.
 // GATE (was warn-only in v1.15.0–v1.16.0): blocks Write/Edit/MultiEdit on code
-// files when the working directory has no .loop-state-*.md — i.e.
+// files when the target file's project has no .loop-state-*.md — i.e.
 // discipline-loop was never invoked for this task. L1 is NOT exempt.
 //
 // Scope: only source-code file extensions are gated. Docs (.md/.txt), data,
 // memory files, scratchpad/tmp paths, and .notion-draft pass through freely.
+//
+// State-file lookup (v1.19.0): walks upward from the EDITED FILE's directory
+// (not session cwd) looking for .loop-state-*.md, stopping at the nearest
+// .git directory (project boundary) so a sibling project's state file in a
+// multi-project meta-workspace can never satisfy this project's gate. Falls
+// back to checking cwd directly only when no .git is found within the depth
+// cap (non-git dirs, CI) — preserves pre-v1.19.0 behavior there. See
+// references/governance.md known-limitations table for the bug this fixes.
 //
 // Escape hatch: a session-scoped bypass marker in tmpdir. Claude may create it
 // ONLY after the user explicitly authorizes skipping in chat (e.g. "skip loop").
@@ -38,9 +46,49 @@ function isGatedFile(filePath) {
   return CODE_EXTENSIONS.has(ext);
 }
 
-function hasLoopState(cwd) {
-  if (!cwd || !fs.existsSync(cwd)) return true; // can't tell — don't block on an unreadable cwd
-  return fs.readdirSync(cwd).some((f) => /^\.loop-state-.*\.md$/.test(f));
+const MAX_UPWARD_LEVELS = 20;
+
+function hasStateFileIn(dir) {
+  try {
+    return fs.readdirSync(dir).some((f) => /^\.loop-state-.*\.md$/.test(f));
+  } catch (e) {
+    return false; // unreadable dir — treat as "no state file here", keep walking/fallback
+  }
+}
+
+// Walks upward from startDir looking for .loop-state-*.md, stopping at the
+// nearest .git-containing directory (project boundary) so a sibling project
+// in a meta-workspace can never satisfy this project's gate. Returns true/false
+// when conclusive (state found, or a .git boundary reached without one), or
+// null when inconclusive (no .git found within the depth cap) — caller falls
+// back to the pre-v1.19.0 cwd check in that case.
+function findLoopStateUpward(startDir) {
+  let dir;
+  try {
+    dir = fs.realpathSync(startDir);
+  } catch (e) {
+    return null;
+  }
+  for (let i = 0; i < MAX_UPWARD_LEVELS; i++) {
+    if (hasStateFileIn(dir)) return true;
+    if (fs.existsSync(path.join(dir, '.git'))) return false; // project boundary, no state within
+    const parent = path.dirname(dir);
+    if (parent === dir) break; // reached filesystem root
+    dir = parent;
+  }
+  return null; // no .git boundary found within the cap — inconclusive
+}
+
+function hasLoopState(filePath, cwd) {
+  const startDir = filePath ? path.dirname(filePath) : cwd;
+  if (startDir) {
+    const upward = findLoopStateUpward(startDir);
+    if (upward !== null) return upward;
+  }
+  // Fallback: no .git boundary found (non-git dir, CI, or startDir unusable) —
+  // preserve pre-v1.19.0 behavior of checking cwd directly.
+  if (!cwd || !fs.existsSync(cwd)) return true; // can't tell — fail-open
+  return hasStateFileIn(cwd);
 }
 
 function bypassMarkerPath(sessionId, cwd) {
@@ -68,7 +116,7 @@ process.stdin.on('end', () => {
     const filePath = tool_input && tool_input.file_path;
     if (!isGatedFile(filePath)) process.exit(0);
     const cwd = payload.cwd || process.cwd();
-    if (hasLoopState(cwd)) process.exit(0);
+    if (hasLoopState(filePath, cwd)) process.exit(0);
     const marker = bypassMarkerPath(session_id, cwd);
     if (fs.existsSync(marker)) process.exit(0);
     emitDeny(
