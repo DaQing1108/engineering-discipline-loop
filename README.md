@@ -148,3 +148,16 @@ MIT — see [LICENSE](LICENSE)
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Current State
+Last checkpoint: 2026-08-24 12:00
+Phase: v1.17.0 → v1.19.0 同步完成
+Working: 公開鏡像 repo 已與私有 repo 內容一致（entry-check hook 邏輯逐位元組相同、SKILL.md/eval-scenarios.md/governance.md/output-templates.md/CHANGELOG.md/README.md/CLAUDE.md/CONTRIBUTING.md 全部同步），E01–E25 全數驗證通過，已 commit + push 至 GitHub
+Next action: 無待辦——governance.md 已知限制表目前沒有「待評估」狀態的項目
+Blockers: none
+
+## Checkpoint History
+### 2026-08-24 12:00｜v1.17.0 → v1.19.0 OSS 鏡像同步
+- Completed: 同步 hooks/discipline-loop-entry-check.js（多子專案 meta-workspace 路徑判斷修復）；同步 SKILL.md/eval-scenarios.md/output-templates.md/governance.md/CHANGELOG.md 版本內容；補齊 README.md/CLAUDE.md/CONTRIBUTING.md 的 E01-E24→E01-E25 引用（含過程中額外發現的 2 處殘留）
+- State: 25/25 eval 場景驗證通過，獨立 code-reviewer subagent 審查 0 CRITICAL/HIGH/MEDIUM，commit `0109aec` 已 push
+- Next: 待新任務觸發
