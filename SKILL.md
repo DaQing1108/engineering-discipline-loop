@@ -1,6 +1,6 @@
 ---
 name: engineering-discipline-loop
-version: 1.19.0
+version: 1.20.0
 description: |
   Claude Code 工程紀律執行迴圈。將資深工程師的九步工作紀律包裝成 agent 可自主執行的
   標準化流程，涵蓋完整九步路徑與輕量六步路徑，並內建 harness Pre-flight、狀態持久化、
@@ -13,7 +13,7 @@ description: |
   - 「繼續昨天的任務」「從斷點繼續」（觸發跨 session 續跑模式）
   - 第一次在新專案使用前，先執行本 Skill 的冷啟動流程（見 references/init.md）
 metadata:
-  version: 1.19.0
+  version: 1.20.0
   changelog_pointer: "完整版本歷程見 CHANGELOG.md（同目錄）"
 ---
 
@@ -518,10 +518,48 @@ AC-2. [AC 描述]
 | 全部 ✅ | 繼續 Step 8 |
 | 有 ❌ | 說明哪條未達成、差距在哪，等待你決定：A) 補實作後重跑 Step 7.5（計入三次終止條件）B) 接受現況繼續（需說明原因） |
 
+**獨立抽樣驗證（v1.20.0 新增，見 `references/governance.md` 第三輪健檢紀錄）：** 上方自評
+由實作任務的同一個 agent 判定，天生有 self-grading 樂觀偏誤（第三輪健檢實測：328 筆分層
+紀錄 0 FAIL／0 ESCALATE_HUMAN，零變異）。依 `risk_level`（取自 `.loop-state.md`，0-C 判定
+結果）套用以下決定性抽樣規則：
+
+| risk_level | 抽樣規則 |
+|-----------|---------|
+| L3 | 必抽（100%） |
+| L2 | 以 `task_id` 字串每個字元的 Unicode code point 加總，和 mod 3 等於 0 時抽（約 1/3，純算術規則由 agent 直接計算，不是交給 agent 主觀判斷「大概三分之一」——v1.16.0 教訓：留給 agent 主觀判斷的文字規則容易被跳過） |
+| L1 | 永不抽（低風險高量低價值；未來健檢需要時再評估是否納入） |
+
+命中抽樣規則時，MUST spawn：
+
+```
+spawn Agent(
+  subagent_type = "loop-verifier",
+  prompt = "
+    任務：{task}
+    AC 清單與 Step 7.5 自評結果：
+    {ac_list_with_self_verification_results}
+
+    以下是本次所有改動的 diff：
+    {diff}
+
+    請獨立驗證每條 AC 是否真的達成（找理由駁回、實際執行測試、確認改動範圍是否與 AC
+    定義相符），逐條回報 AGREE 或 DISAGREE，不得只複述自評結果。
+  "
+)
+```
+
+**獨立驗證結果處理：** 若 loop-verifier 對某條 AC 回報 DISAGREE，而自評結果為 ✅——NEVER
+靜默保留自評的 ✅，該條 AC 視為「有 ❌」，直接套用上方「結果處理」表同一套 A/B 流程，並
+計入既有三次終止條件，與自評本身回報 ❌ 的處理方式完全相同。獨立驗證全數 AGREE，或該任務
+未命中抽樣規則，流程不受影響，繼續往下走。
+
 **判定結果 MUST 追加寫入 `references/step7-verification-log.log`**（任務 ID／風險等級／AC 編號／
-判定結果，純記錄不分析，不要求使用者操作）。風險等級取自 `.loop-state.md` 的 `risk_level`
+判定結果／獨立驗證結果，純記錄不分析，不要求使用者操作）。風險等級取自 `.loop-state.md` 的 `risk_level`
 欄位（0-C 判定結果），供健檢時按任務複雜度分層量測各等級的 FAIL／rework 率，定位模型能力邊界
-（v1.18.0 新增，見 `references/governance.md` 第二輪健檢紀錄）。
+（v1.18.0 新增，見 `references/governance.md` 第二輪健檢紀錄）。獨立驗證結果欄位值為
+`NOT_SAMPLED`／`AGREE`／`DISAGREE` 之一：未命中上方抽樣規則記 `NOT_SAMPLED`；命中且
+loop-verifier 已回報結果，記對應的 `AGREE` 或 `DISAGREE`（v1.20.0 新增，見
+`references/governance.md` 已知限制表 Step 7.5 自評偏誤列）。
 
 `.loop-state.md` 更新：
 ```yaml
@@ -681,7 +719,7 @@ MUST 在 /ship 或 L-STEP 6 SHIP 前，讀取 `references/quality-standards.md`�
 
 ## Eval 場景表（升版前必跑）　　　　　← 附模組 ⑦-E
 
-MUST 在任何版本號變更前，讀取 `references/eval-scenarios.md`，逐一對照全部二十五個場景（E01–E25），全部通過才能蓋新版本號。逐條列出比對結果，不得僅憑摘要宣稱「Eval 通過」（見 E08）。
+MUST 在任何版本號變更前，讀取 `references/eval-scenarios.md`，逐一對照全部二十六個場景（E01–E26），全部通過才能蓋新版本號。逐條列出比對結果，不得僅憑摘要宣稱「Eval 通過」（見 E08）。
 
 ---
 

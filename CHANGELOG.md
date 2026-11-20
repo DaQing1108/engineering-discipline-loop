@@ -1,5 +1,53 @@
 # Changelog — engineering-discipline-loop
 
+## v1.20.0 (2026-11-21)
+A third periodic health check (`references/governance.md`, triggered by
+`hook-trigger-log.log` passing 132 events against the 20-event threshold,
+and 13 weeks against the 6-week threshold) found that Step 7.5's
+self-grading had produced zero FAIL/ESCALATE_HUMAN outcomes across all 328
+risk-tiered AC judgments logged since v1.18.0. That zero-variance result is
+unlikely to reflect genuine defect-free work — it's more consistent with
+self-grading optimism bias, since the agent implementing the task is the
+same agent grading it. Until an independent signal exists, the risk-tiered
+"compare FAIL rates by complexity" analysis v1.18.0 set out to enable can't
+produce anything to compare:
+1. Adds a deterministic sampling rule right after Step 7.5's existing
+   result-handling table, keyed off `risk_level` (from `.loop-state.md`'s
+   Step 0-C decision): `L3` is always sampled (100%); `L2` is sampled when
+   the sum of Unicode code points across the `task_id` string is divisible
+   by 3 (~1/3, a plain arithmetic check the agent computes directly rather
+   than a "roughly one-in-three" judgment call left to its discretion — the
+   v1.16.0 lesson that discretionary text rules get skipped applies here
+   too); `L1` is never sampled (low risk, high volume, low value for now).
+2. When sampled, `SKILL.md` now requires spawning
+   `Agent(subagent_type="loop-verifier")` with the task, the AC list plus
+   each AC's self-verification result, and the full diff, asking it to
+   independently report AGREE/DISAGREE per AC rather than restate the
+   self-assessment.
+3. A DISAGREE on an AC the self-assessment marked ✅ is never silently kept
+   — it's routed into the existing Step 7.5 "有 ❌" A/B flow (fix and rerun,
+   or accept with an explicit reason) and counts toward the existing
+   three-strikes termination condition, exactly like a self-reported
+   failure. Full agreement, or a task that wasn't sampled, leaves the flow
+   unchanged.
+4. `references/step7-verification-log.log` gains a 6th field,
+   `independent_result` (`NOT_SAMPLED` / `AGREE` / `DISAGREE`). The log's
+   header comment is updated to describe it; pre-v1.20.0 rows are left as
+   4- or 5-field rows, not backfilled.
+5. Adds `references/eval-scenarios.md` E26 (an always-sampled L3 case and a
+   never-sampled L1 case); the eval table grows from E01–E25 (25) to
+   E01–E26 (26). Also fixes pre-existing drift in E08's self-referential
+   scenario-count text and E16's `pass_condition`, following the same
+   precedent v1.18.0 set when it last touched E16.
+6. Marks the Step 7.5 self-grading-bias row in `references/governance.md`'s
+   known-limitations table `✅ 已解決 (v1.20.0)`, and records the third
+   health-check round's findings (including a new known limitation: the
+   health-check threshold itself is purely passive — the first and third
+   rounds were both only caught well after the threshold had been blown
+   past, by a direct question rather than any proactive alert).
+7. Updates `references/output-templates.md`'s log-format example to show
+   the new 6th field.
+
 ## v1.19.0 (2026-08-24)
 Fixes a state-file path misjudgment in multi-project meta-workspace layouts
 (see the known-limitations table in `references/governance.md`):

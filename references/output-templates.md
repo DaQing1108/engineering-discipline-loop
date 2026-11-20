@@ -150,14 +150,16 @@ Step [N] 失敗 3 次，已停止執行。
 
 `references/step7-verification-log.log`（Step 7.5 每條 AC 判定完成後追加；v1.18.0 新增風險等級
 欄位，取自 `.loop-state.md` 的 `risk_level`，供健檢按任務複雜度分層量測 FAIL／rework 率，
-判斷模型能力邊界，見 `references/governance.md` 第二輪健檢紀錄）：
+判斷模型能力邊界，見 `references/governance.md` 第二輪健檢紀錄；v1.20.0 新增第 6 欄獨立驗證
+結果，命中 Step 7.5 抽樣規則時記 `AGREE`／`DISAGREE`，未命中記 `NOT_SAMPLED`，見第三輪健檢
+紀錄）：
 ```
-2026-07-03 14:20 | 20260703-6e4a | L1 | AC-9 | PASS
-2026-07-03 14:20 | 20260703-6e4a | L1 | AC-10 | PASS(需用戶驗證)
-2026-08-24 09:12 | 20260824-p3k1 | L3 | AC-2 | FAIL
+2026-07-03 14:20 | 20260703-6e4a | L1 | AC-9 | PASS | NOT_SAMPLED
+2026-07-03 14:20 | 20260703-6e4a | L1 | AC-10 | PASS(需用戶驗證) | NOT_SAMPLED
+2026-08-24 09:12 | 20260824-p3k1 | L3 | AC-2 | FAIL | DISAGREE
 ```
-v1.18.0 之前寫入的舊格式紀錄（無風險等級欄位）維持原樣不回填，健檢分析時以有無該欄位判斷
-可否納入分層統計。
+v1.18.0 之前寫入的舊格式紀錄（無風險等級欄位）、v1.20.0 之前寫入的紀錄（無獨立驗證結果欄位）
+均維持原樣不回填，健檢分析時以欄位數判斷可否納入對應分層統計。
 
 `references/hook-trigger-log.log`（依賴偵測 hook block／needs_confirmation、行數警示 hook 觸發、
 denylist 文字規則命中時追加；denylist_hit 由 agent 依 Step 4 規則寫入，非 hook 產生）：
